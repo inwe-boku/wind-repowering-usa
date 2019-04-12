@@ -62,7 +62,7 @@ def savefig_mean_wind_speed_and_turbines(turbines):
 def savefig_optimized_cluster(turbines):
     locations = turbine_locations(turbines)
     optimal_locations = load_optimal_locations(e138ep3, 4)
-    fig = plot_optimized_cluster(locations, optimal_locations)
+    fig = plot_optimized_cluster(locations, optimal_locations, e138ep3)
     fig.savefig(FIGURES_DIR / 'optimized_cluster.pdf', bbox_inches='tight')
 
 

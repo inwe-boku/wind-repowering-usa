@@ -197,7 +197,7 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
     return fig
 
 
-def plot_optimized_cluster(locations, optimal_locations):
+def plot_optimized_cluster(locations, optimal_locations, turbine):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
     cluster = 2909
@@ -209,7 +209,7 @@ def plot_optimized_cluster(locations, optimal_locations):
     ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=2, color='#efc220',
             label='Current location of wind turbine')
     ax.plot(locations_new_xlon, locations_new_ylat, 'o', markersize=2, color='#c72321',
-            label='Optimal location for new wind turbine')
+            label='Optimal location for {}'.format(turbine.name))
     ax.set_aspect('equal')
     plt.xlabel("Longitude [deg]")
     plt.ylabel("Latitude [deg]")
