@@ -42,3 +42,6 @@ calc_min_distances:
 
 generate_figures:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/generate_figures.py
+
+slides:
+	cd doc/slides; pdflatex slides.tex
