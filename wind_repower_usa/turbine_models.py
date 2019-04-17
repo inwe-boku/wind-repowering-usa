@@ -16,27 +16,6 @@ def new_turbine_models():
     return e138ep3, e126, se_42m140
 
 
-def power_curve_ge15_77_linear():
-    """Power curve for GE1.5-77, but mostly linear.
-
-    The values k and d where found by applying a ``np.polyfit()`` to the values in
-    power_curve_ge15_77().
-    """
-    k, d = 150.77777777777774, -525.8888888888888
-
-    return lambda wind_speed: np.maximum(np.minimum(k * wind_speed + d, 1500.), 0.)
-
-
-ge15_77_linear = Turbine(
-    name='ge15_77_linear',
-    file_name='ge15_77_linear',
-    power_curve=power_curve_ge15_77_linear(),
-    capacity_mw=1.5,
-    rotor_diameter_m=None,
-    hub_height_m=None,
-)
-
-
 def power_curve_ge15_77():
     """Power curve for GE1.5-77
     https://www.ge.com/in/wind-energy/1.5-MW-wind-turbine

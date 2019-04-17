@@ -8,7 +8,7 @@ from dask.diagnostics import ProgressBar
 from wind_repower_usa.config import MONTHS
 from wind_repower_usa.load_data import load_turbines, load_wind_velocity
 from wind_repower_usa.load_data import load_wind_speed
-from wind_repower_usa.turbine_models import ge15_77_linear
+from wind_repower_usa.turbine_models import ge15_77
 
 
 def calc_wind_speed_at_turbines(wind_velocity, turbines):
@@ -48,7 +48,7 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
 
     """
     if power_curve is None:
-        power_curve = ge15_77_linear.power_curve
+        power_curve = ge15_77.power_curve
 
     # TODO this is a bit scary, when does parallelized not work? Which dtype?
     simulated_energy = xr.apply_ufunc(power_curve, wind_speed,
