@@ -1,5 +1,3 @@
-import os.path as op
-
 import xarray as xr
 import matplotlib
 import matplotlib.pyplot as plt
@@ -43,12 +41,10 @@ def savefig_repower_potential():
             repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor))
 
     plot_repower_potential(*repower_potentials, variable='power_generation')
-    plt.savefig(op.join(op.dirname(__file__), '..', 'figures',
-                        f'repower_potential_power_generation.pdf'), bbox_inches='tight')
+    plt.savefig(FIGURES_DIR / 'repower_potential_power_generation.pdf', bbox_inches='tight')
 
     plot_repower_potential(*repower_potentials, variable='num_turbines')
-    plt.savefig(op.join(op.dirname(__file__), '..', 'figures',
-                        f'repower_potential_num_turbines.pdf'), bbox_inches='tight')
+    plt.savefig(FIGURES_DIR / 'repower_potential_num_turbines.pdf', bbox_inches='tight')
 
 
 def savefig_mean_wind_speed_and_turbines(turbines):

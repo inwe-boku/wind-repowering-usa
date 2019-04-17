@@ -1,28 +1,21 @@
 import os
-import os.path as op
 import logging
 
 import cdsapi
 
+from wind_repower_usa.config import YEARS, MONTHS, EXTERNAL_DIR
 from wind_repower_usa.logging_config import setup_logging
 
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.load_data import DATA_EXTERN
 from wind_repower_usa.calculations import calc_bounding_box_usa
-
-
-DOWNLOAD_DIR = op.join(DATA_EXTERN, 'wind_velocity_usa_era5')
-
-YEARS = range(1990, 2019)
-MONTHS = list(range(1, 13))
-
-setup_logging(op.join(DOWNLOAD_DIR, 'download.log'))
 
 
 def main():
     # API documentation for downloading a subset:
     # https://confluence.ecmwf.int/display/CKB/Global+data%3A+Download+data+from+ECMWF+for+a+particular+area+and+resolution
     # https://retostauffer.org/code/Download-ERA5/
+
+    download_dir = EXTERNAL_DIR / 'wind_velocity_usa_era5'
 
     turbines = load_turbines()
     north, west, south, east = calc_bounding_box_usa(turbines)
@@ -39,10 +32,9 @@ def main():
 
     for year in YEARS:
         for month in MONTHS:
-            filename = op.join(DOWNLOAD_DIR,
-                               f'wind_velocity_usa_{year}-{month:02d}.nc')
+            filename = download_dir / f'wind_velocity_usa_{year}-{month:02d}.nc'
 
-            if op.exists(filename):
+            if filename.exists():
                 logging.info(f"Skipping {filename}, already exists!")
                 continue
 
@@ -165,5 +157,7 @@ def patch_cdsapi():
 
 
 if __name__ == '__main__':
+    setup_logging()
+
     patch_cdsapi()
     main()

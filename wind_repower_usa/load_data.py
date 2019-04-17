@@ -1,15 +1,11 @@
-import os.path as op
-
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-from wind_repower_usa.config import INTERIM_DIR
+from wind_repower_usa.config import INTERIM_DIR, EXTERNAL_DIR
 from wind_repower_usa.turbine_models import ge15_77
 
 NUM_TURBINES = 58000
-
-DATA_EXTERN = op.join(op.dirname(__file__), '..', 'data', 'external')
 
 
 def load_turbines():
@@ -23,9 +19,8 @@ def load_turbines():
     xr.DataSet
 
     """
-    turbines_dataframe = pd.read_csv(
-        op.join(DATA_EXTERN, 'wind_turbines_usa', 'uswtdbCSV',
-                'uswtdb_v1_2_20181001.csv'))
+    turbines_dataframe = pd.read_csv(EXTERNAL_DIR / 'wind_turbines_usa' / 'uswtdbCSV' /
+                                     'uswtdb_v1_2_20181001.csv')
 
     # TODO is this really how it is supposed to be done?
     turbines_dataframe.index = turbines_dataframe.index.rename('turbines')
@@ -45,7 +40,7 @@ def load_turbines():
 
 def load_generated_energy_gwh():
     generated_energy_csv = pd.read_csv(
-        op.join(DATA_EXTERN, 'energy_generation', 'Net_generation_for_all_sectors.csv'),
+        EXTERNAL_DIR / 'energy_generation' / 'Net_generation_for_all_sectors.csv',
         delimiter=',', quotechar='"', header=4)
 
     # only wind energy
@@ -69,8 +64,8 @@ def load_wind_velocity(year, month):
     except TypeError:
         month = [month]
 
-    fnames = [op.join(DATA_EXTERN, 'wind_velocity_usa_era5',
-                      'wind_velocity_usa_{y}-{m:02d}.nc'.format(m=m, y=y))
+    fnames = [EXTERNAL_DIR / 'wind_velocity_usa_era5' /
+              'wind_velocity_usa_{y}-{m:02d}.nc'.format(m=m, y=y)
               for m in month for y in year]
 
     # FIXME how to calculate this better?
@@ -110,8 +105,8 @@ def load_wind_speed(years, months):
     except TypeError:
         months = [months]
 
-    fnames = [op.join(op.dirname(__file__), '..', 'data', 'interim', 'wind_speed_usa_era5',
-                      'wind_speed_usa_era5-{}-{:02d}.nc'.format(year, month))
+    fnames = [INTERIM_DIR / 'wind_speed_usa_era5' /
+              'wind_speed_usa_era5-{}-{:02d}.nc'.format(year, month)
               for year in years for month in months]
 
     # FIXME how to calculate this better?
@@ -129,16 +124,16 @@ def load_wind_speed(years, months):
 
 def load_optimal_locations(turbine_model, distance_factor):
     optimal_locations = xr.open_dataset(
-        op.join(op.dirname(__file__), '..', 'data', 'interim', 'optimal_locations',
-                f'optimal_locations_{turbine_model.file_name}_{distance_factor}.nc'))
+        INTERIM_DIR / 'optimal_locations' /
+        f'optimal_locations_{turbine_model.file_name}_{distance_factor}.nc')
     return optimal_locations
 
 
 def load_simulated_energy_per_location(turbine_model, capacity_scaling=False):
     scaling_str = '' if not capacity_scaling else '_capacity_scaled'
     simulated_energy_per_location = xr.open_dataarray(
-        op.join(op.dirname(__file__), '..', 'data', 'interim', 'simulated_energy_per_location',
-                f'simulated_energy_{turbine_model.file_name}{scaling_str}_gwh.nc'))
+        INTERIM_DIR / 'simulated_energy_per_location' /
+        f'simulated_energy_{turbine_model.file_name}{scaling_str}_gwh.nc')
     return simulated_energy_per_location
 
 

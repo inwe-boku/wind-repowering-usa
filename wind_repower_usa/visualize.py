@@ -1,7 +1,3 @@
-import time
-import os.path as op
-
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -60,7 +56,7 @@ def plot_simulated_generated_energy(simulated_energy_gwh):
 
 
 def plot_rel_error_energy_simulation(simulated_energy_gwh,
-                                     generated_energy_gwh, savefig=True):
+                                     generated_energy_gwh):
     """Plot simulation - generated energy relative to generated energy."""
     rel_error = 100. * (simulated_energy_gwh/generated_energy_gwh - 1)
 
@@ -80,11 +76,6 @@ def plot_rel_error_energy_simulation(simulated_energy_gwh,
     months_locator = mdates.MonthLocator()  # every month
     lines.figure.axes[0].xaxis.set_major_locator(years_locator)
     lines.figure.axes[0].xaxis.set_minor_locator(months_locator)
-
-    date = time.strftime('%Y-%m-%d')
-    if savefig:
-        plt.savefig(op.join(op.dirname(__file__), '..', 'figures',
-                            f'simulated_generated_energy-{date}.png'))
 
     return plt.gca()
 

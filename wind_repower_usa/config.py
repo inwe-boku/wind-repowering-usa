@@ -1,4 +1,3 @@
-import os.path as op
 import pathlib
 
 NUM_PROCESSES = 8
@@ -9,7 +8,7 @@ MONTHS = range(1, 13)
 
 DISTANCE_FACTORS = 2, 3, 4, 6
 
-LOG_FILE = op.join(op.dirname(__file__), '..', 'data', 'logfile.log')
+LOG_FILE = pathlib.Path(__file__).parent.parent / 'data' / 'logfile.log'
 
 INTERIM_DIR = pathlib.Path(__file__).parent.parent / 'data' / 'interim'
 
