@@ -2,7 +2,7 @@ import pathlib
 
 NUM_PROCESSES = 8
 
-# used for downloading, calucation of time series etc
+# used for downloading, calculation of time series etc
 YEARS = range(1995, 2019)
 MONTHS = range(1, 13)
 

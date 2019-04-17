@@ -23,8 +23,6 @@ def main():
     # Format for downloading ERA5: North/West/South/East
     bounding_box = "{}/{}/{}/{}".format(north, west, south, east)
 
-    # old data downloaded with:  "68/-172/16/-61"
-
     logging.info("Downloading bounding_box=%s for years=%s and months=%s",
                  bounding_box, YEARS, MONTHS)
 

@@ -13,6 +13,7 @@ Turbine = namedtuple('Turbine', ('name',
 
 
 def new_turbine_models():
+    """Return all turbine models used for repowering."""
     return e138ep3, e126, se_42m140
 
 
