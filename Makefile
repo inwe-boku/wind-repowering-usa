@@ -28,9 +28,6 @@ calc_wind_speed:
 calc_simulated_energy_timeseries:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_simulated_energy_timeseries.py
 
-convert_gwa_to_netcdf:
-	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/convert_gwa_to_netcdf.py
-
 calc_simulated_energy_per_location:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_simulated_energy_per_location.py
 
