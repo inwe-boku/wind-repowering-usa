@@ -65,7 +65,7 @@ def savefig_optimized_cluster(turbines):
 def savefig_simulated_energy_time_series():
     generated_energy_gwh = load_generated_energy_gwh()
     simulated_energy_gwh = xr.open_dataarray(INTERIM_DIR / 'simulated_energy_timeseries' /
-                                             'simulated_energy_timeseries_gwh.nc')
+                                             'simulated_energy_timeseries_ge15_77_gwh.nc')
     simulated_energy_gwh = simulated_energy_gwh.sel(time=slice(generated_energy_gwh.time.min(),
                                                                None))
 
