@@ -14,10 +14,10 @@ def test_load_turbines():
 def test_load_generated_energy_gwh():
     generated_energy_gwh = load_data.load_generated_energy_gwh()
 
-    assert generated_energy_gwh.sel(time='2001-01-01') == 389
-    assert generated_energy_gwh.sel(time='2013-12-01') == 13967
-    assert len(generated_energy_gwh) == 213
-    assert np.max(generated_energy_gwh) == 27287
+    assert generated_energy_gwh.sel(time='2001-01-01') == 389.25
+    assert generated_energy_gwh.sel(time='2013-12-01') == 13967.05881
+    assert len(generated_energy_gwh) == 217
+    assert np.max(generated_energy_gwh) == 27283.19006
 
     assert generated_energy_gwh.dtype == np.float
     assert isinstance(generated_energy_gwh, xr.DataArray)

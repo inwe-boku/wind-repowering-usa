@@ -52,3 +52,6 @@ gurobi.log
 *.snm
 *.nav
 *.run.xml
+
+# private file, API key in clear text
+eia-api-key

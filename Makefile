@@ -25,6 +25,10 @@ download_turbines:
 download_wind_era5:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/download_wind_era5.py
 
+EIA_API_KEY=$(shell cat eia-api-key)
+download_energy_generation:
+	cd data/external/energy_generation; wget http://api.eia.gov/series/\?api_key\=$(EIA_API_KEY)\&series_id\=ELEC.GEN.WND-US-99.M -O ELEC.GEN.WND-US-99.M.json
+
 calc_wind_speed:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_wind_speed.py
 

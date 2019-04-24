@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -33,14 +35,13 @@ def load_turbines():
 
 
 def load_generated_energy_gwh():
-    generated_energy_csv = pd.read_csv(
-        EXTERNAL_DIR / 'energy_generation' / 'Net_generation_for_all_sectors.csv',
-        delimiter=',', quotechar='"', header=4)
+    with open(EXTERNAL_DIR / 'energy_generation' / 'ELEC.GEN.WND-US-99.M.json', 'r') as f:
+        generated_energy_json = json.load(f)
 
-    # only wind energy
+    date, value = zip(*generated_energy_json['series'][0]['data'])
+
     # unit = thousand megawatthours
-    generated_energy_gwh = generated_energy_csv.loc[4][3:].astype(np.float)
-    generated_energy_gwh.index = pd.to_datetime(generated_energy_gwh.index)
+    generated_energy_gwh = pd.Series(value, index=pd.to_datetime(date, format='%Y%m'))
 
     return xr.DataArray(generated_energy_gwh, dims='time',
                         name="Generated energy per month [GWh]")
