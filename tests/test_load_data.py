@@ -15,10 +15,13 @@ def test_load_generated_energy_gwh():
     generated_energy_gwh = load_data.load_generated_energy_gwh()
 
     assert generated_energy_gwh.sel(time='2001-01-01') == 389
+    assert generated_energy_gwh.sel(time='2013-12-01') == 13967
     assert len(generated_energy_gwh) == 213
     assert np.max(generated_energy_gwh) == 27287
+
     assert generated_energy_gwh.dtype == np.float
     assert isinstance(generated_energy_gwh, xr.DataArray)
+    assert generated_energy_gwh.dims == ('time',)
 
 
 def test_load_wind_velocity():
