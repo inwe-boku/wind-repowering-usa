@@ -3,7 +3,7 @@ import pathlib
 NUM_PROCESSES = 8
 
 # used for downloading, calculation of time series etc
-YEARS = range(1995, 2019)
+YEARS = range(2000, 2019)
 MONTHS = range(1, 13)
 
 DISTANCE_FACTORS = 2, 3, 4, 6
