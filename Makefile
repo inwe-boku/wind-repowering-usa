@@ -11,7 +11,7 @@ run_jupyter:
 test: unit_test test_notebooks
 
 unit_test:
-	python3 -m pytest tests
+	python3 -m pytest -ra --tb=line tests
 
 test_notebooks:
 	PYTHONPATH=${PYTHONPATH}:${PWD} jupyter nbconvert --execute notebooks/0*.ipynb --stdout > /dev/null
