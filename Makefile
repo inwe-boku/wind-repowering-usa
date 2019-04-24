@@ -19,6 +19,9 @@ test_notebooks:
 lint:
 	flake8 wind_repower_usa scripts
 
+download_turbines:
+	cd data/external/wind_turbines_usa; wget -O uswtdb_v1_3_20190107.csv https://www.sciencebase.gov/catalog/file/get/57bdfd8fe4b03fd6b7df5ff9?f=__disk__17%2Fd8%2Ff9%2F17d8f9c1407c32152e9ee998f5313719b2e9d4d9
+
 download_wind_era5:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/download_wind_era5.py
 

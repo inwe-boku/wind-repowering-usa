@@ -19,18 +19,12 @@ def load_turbines():
     xr.DataSet
 
     """
-    turbines_dataframe = pd.read_csv(EXTERNAL_DIR / 'wind_turbines_usa' / 'uswtdbCSV' /
-                                     'uswtdb_v1_2_20181001.csv')
+    turbines_dataframe = pd.read_csv(EXTERNAL_DIR / 'wind_turbines_usa' /
+                                     'uswtdb_v1_3_20190107.csv')
 
     # TODO is this really how it is supposed to be done?
     turbines_dataframe.index = turbines_dataframe.index.rename('turbines')
     turbines = xr.Dataset.from_dataframe(turbines_dataframe)
-
-    # some fields contain -9999 if the value is missing - replace with NaN:
-    # Incomplete fields: 'p_year', 'p_cap', 't_cap', 't_hh',
-    #                    't_rd', 't_rsa', 't_ttlh'
-    # TODO maybe better only for incomplete fields explicitly?
-    turbines = turbines.where(turbines != -9999)
 
     # Lets not use the turbine on Guam (avoids a huge bounding box for the USA)
     turbines = turbines.sel(turbines=turbines.xlong < 0)
