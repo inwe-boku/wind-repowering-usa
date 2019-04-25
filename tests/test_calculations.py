@@ -28,4 +28,4 @@ def test_calc_simulated_energy():
     wind_speed = load_wind_speed(2016, 7)
     simulated_energy_timeseries_gwh = calc_simulated_energy(wind_speed, turbines)
     np.testing.assert_almost_equal(simulated_energy_timeseries_gwh.isel(time=0).values,
-                                   15819.0276762)
+                                   15773.1596734)

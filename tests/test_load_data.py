@@ -6,7 +6,7 @@ from wind_repower_usa import load_data
 
 def test_load_turbines():
     turbines = load_data.load_turbines()
-    assert np.isnan(turbines.t_cap).sum() == 3694
+    assert np.isnan(turbines.t_cap).sum() == 3967
     assert turbines.p_year.min() == 1981
     assert turbines.p_year.max() == 2018
 

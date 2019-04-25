@@ -56,8 +56,12 @@ def test_find_optimal_locations():
         distance_factor=2.5e-2,
     )
 
-    # there are 6 (erroneous) locations with distance < 2.5m to the closest location
-    idcs_pairs = [[13418, 13258], [54383, 54381], [54385, 54382]]
+    # there are 6 (erroneous) locations with distance < 5.5m to the closest location
+    idcs_pairs = [[8489, 56587], [13268, 13391], [54214, 54216], [54215, 54217]]
+
+    # Note that there are erroneous turbine locations, which are only filtered in
+    # calc_min_distances_cluster(), which is not used here. It might make sense to clean this
+    # data in load_turbines() and use a higher distance_factor for this test.
 
     is_optimal_location = optimal_locations.is_optimal_location
 
