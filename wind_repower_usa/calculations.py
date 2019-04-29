@@ -1,5 +1,6 @@
 import time
 import logging
+import warnings
 
 import numpy as np
 import xarray as xr
@@ -49,6 +50,11 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
     """
     if power_curve is None:
         power_curve = ge15_77.power_curve
+
+    # this outputs a deprecation warning, see https://github.com/pydata/xarray/issues/2928
+    # TODO probably not the best idea to have this here, since it modifies gloabl behavior at
+    #  runtime, but where else to put it? pytest ignores warnings.catch_warnings()...
+    warnings.filterwarnings('ignore', 'The da.atop function has moved to da.blockwise')
 
     # TODO this is a bit scary, when does parallelized not work? Which dtype?
     simulated_energy = xr.apply_ufunc(power_curve, wind_speed,
