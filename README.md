@@ -24,6 +24,7 @@ Requirements
 * approx. 200GB of disk space, more than 16GB RAM
 * API key for the [CDS API](https://cds.climate.copernicus.eu/api-how-to)
 * API key for the [EIA API](https://www.eia.gov/developer/)
+* [Gurobi](http://www.gurobi.com/)
 
 
 How to run
@@ -37,6 +38,19 @@ conda env update -f env.yml
 
 Store the [EIA API key](https://www.eia.gov/developer/) in a plain text file
 `eia-api-key` in the repository root directory.
+
+Activate the conda environment:
+
+```
+conda activate wind_repower_usa
+```
+
+Install the Python Gurobi API in the conda environment:
+
+```
+cd /opt/gurobi810/linux64/ 
+python setup.py install
+```
 
 Run individual steps using [Make](https://www.gnu.org/software/make/):
 
