@@ -97,7 +97,7 @@ def plot_power_curve_linearization(power_curve, linear_pc,
     ax2 = lines.axes.twinx()
     ax2.plot(wind_speed_probality.wind_speed, wind_speed_probality, 'k')
 
-    plt.ylabel('probablity at turbine locations')
+    plt.ylabel('probability at turbine locations')
     plt.legend(['Wind speed probability'])
 
     return plt.gca()
