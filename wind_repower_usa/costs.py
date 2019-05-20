@@ -14,7 +14,7 @@ def turbine_cost(height, rated_capacity, diameter, age):
     diameter
         in m
     age
-        age in "years before 2016" i think in reality its (date of availability)-2015
+        age in "years before 2016", maybe actually: (date of availability)-2015
 
     Returns
     -------
@@ -34,19 +34,14 @@ def turbine_cost(height, rated_capacity, diameter, age):
 
 
 if __name__ == '__main__':
-    print(turbine_cost(1, 1, 1, 1))
-
-    # Testturbine 1 from Rinne et al:
-    # Year 2002 High winds V90-3.0 MW Height: 75 Price: 878 euro/kW
-    # Whoaaaa this is completely crazy!
-    # the numbers from the paper are for vintage setting age=0!
-    # and new age=1!
+    # the numbers from the paper can be reproduced with age = 0
     for i in range(20):
-        print(i)
-        print(turbine_cost(75, 3000000, 90, i))
+        print(i, turbine_cost(75, 3000000, 90, i))
 
-    print(turbine_cost(75, 3000000, 90, 0))
+    # Test turbine 1 (vintage) from Rinne et al:
+    # Year: 2002, High winds, V90-3.0 MW, Height: 75, Price: 878 Euro/kW
+    print("vintage:", turbine_cost(75, 3000000, 90, 0))
 
-    # Testturbine 2 from Rinne et al:
-    # Year 2015 High winds V117-3.45 MW Height 125 Price:  1,448 euro/kW
-    print(turbine_cost(125, 3450000, 117, 1))
+    # Test turbine 2 (new) from Rinne et al:
+    # Year: 2015, High winds, V117-3.45 MW, Height: 125, Price:  1,448 Euro/kW
+    print("new:", turbine_cost(125, 3450000, 117, 0))
