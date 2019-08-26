@@ -29,6 +29,8 @@ def geolocation_distances(locations):
 
     # TODO use sklearn instead? seems to support haversine since DBSCAN can do it
 
+    # FIXME should we use something else instead of Haversine?
+
     locations_rad = np.radians(locations)
     latitudes, longitudes = locations_rad.T
 
