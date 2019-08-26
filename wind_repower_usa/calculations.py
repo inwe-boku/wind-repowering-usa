@@ -70,6 +70,8 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
 
         nanosecs_of_year = (simulated_energy.time - building_dates).astype(np.float)
         proportion_of_year = nanosecs_of_year / (365.25 * 24 * 60 * 60 * 1e9)
+
+        # comparing objects with dim "time" and dim "turbines" results in (time, turbines)
         building_this_year = simulated_energy.time.dt.year == turbines.p_year
 
         simulated_energy = simulated_energy.where(~building_this_year,
