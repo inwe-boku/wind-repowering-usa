@@ -6,7 +6,7 @@ clean:
 	rm -rf tests/__pycache__/
 
 run_jupyter:
-	PYTHONPATH=${PYTHONPATH}:${PWD} jupyter notebook --ip 0.0.0.0 --no-browser
+	PYTHONPATH=${PYTHONPATH}:${PWD} jupyter notebook #--ip 0.0.0.0 --no-browser
 
 test: unit_test test_notebooks
 
