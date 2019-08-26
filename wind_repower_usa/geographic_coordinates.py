@@ -42,13 +42,14 @@ def geolocation_distances(locations):
     return EARTH_RADIUS_KM * c
 
 
-def calc_min_distances_cluster(locations):
+def calc_min_distances_cluster(locations, n_closest=1):
     """Calculate distances to closest turbine. Meant to be run for one cluster, not for all
     turbines.
 
     Parameters
     ----------
     locations : shape (N, 2)
+    n_closest : int
 
     """
     MIN_DISTANCE_KM = 5 * 1e-3  # needed to filter out obviously wrong data, like 70cm distances
@@ -56,10 +57,17 @@ def calc_min_distances_cluster(locations):
     distances = geolocation_distances(locations)
 
     distances = np.where(distances > MIN_DISTANCE_KM, distances, np.inf)
-    return np.min(distances, axis=0)
+    if n_closest == 1:
+        return np.min(distances, axis=0)
+    else:
+        num_locations = locations.shape[0]
+        distances_sorted = np.full((num_locations, n_closest), np.nan)
+        cols = min(num_locations, n_closest)
+        distances_sorted[:, :cols] = np.sort(distances, axis=1)[:, :n_closest]
+        return distances_sorted
 
 
-def calc_min_distances(locations, cluster_per_location=None):
+def calc_min_distances(locations, cluster_per_location=None, n_closest=1):
     """Calculate distances to closest turbine. Uses clustering to speed up calculation, assuming
     that only distances are relevant which are lower than minimum distances between clusters.
 
@@ -69,11 +77,13 @@ def calc_min_distances(locations, cluster_per_location=None):
     Parameters
     ----------
     locations : shape (N, 2)
-    cluster_per_location
+    cluster_per_location :
+    n_closest : int
+        calculate n_closest turbines instead of the min one
 
     Returns
     -------
-    min_distances : np.ndarray of shape (N,)
+    min_distances : np.ndarray of shape (N,) or (N,n_closest) for n_closest>1
         distance in km
 
     """
@@ -84,13 +94,19 @@ def calc_min_distances(locations, cluster_per_location=None):
         cluster_per_location = optimal_locations.cluster_per_location
 
     clusters = np.unique(cluster_per_location)
-    closest_location_distances = np.zeros(len(locations))
+    if n_closest == 1:
+        closest_location_distances = np.zeros(len(locations))
+    else:
+        closest_location_distances = np.zeros((len(locations), n_closest))
 
     for cluster in clusters:
         idcs = cluster == cluster_per_location
-        closest_location_distances[idcs] = calc_min_distances_cluster(locations[idcs])
+        closest_location_distances[idcs] = calc_min_distances_cluster(locations[idcs], n_closest)
 
-    return xr.DataArray(closest_location_distances, dims='turbines')
+    if n_closest == 1:
+        return xr.DataArray(closest_location_distances, dims='turbines')
+    else:
+        return xr.DataArray(closest_location_distances, dims=('turbines', 'n_closest'))
 
 
 def calc_location_clusters(locations, min_distance_km=0.5):
