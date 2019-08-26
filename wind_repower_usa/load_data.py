@@ -31,6 +31,9 @@ def load_turbines():
     # Lets not use the turbine on Guam (avoids a huge bounding box for the USA)
     turbines = turbines.sel(turbines=turbines.xlong < 0)
 
+    # turbine coordinates should be sequential also after removing Guam...
+    turbines['turbines'] = range(turbines.turbines.size)
+
     return turbines
 
 
