@@ -93,9 +93,10 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
     # inspired by:
     # http://xarray.pydata.org/en/stable/examples/weather-data.html#monthly-averaging
 
-    simulated_energy = simulated_energy.sortby('time')
+    simulated_energy = simulated_energy.sortby('time') * 1e-6
 
-    simulated_energy = simulated_energy.sum(dim=sum_along) * 1e-6
+    if sum_along:
+        simulated_energy = simulated_energy.sum(dim=sum_along)
     if sum_along == 'turbines':
         simulated_energy = simulated_energy.resample(time='1MS').sum()
 
