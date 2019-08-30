@@ -285,3 +285,58 @@ def plot_power_curves():
     plt.grid()
 
     return fig
+
+
+def plot_wind_rose(data1, data2=None, args=None, kwargs=None):
+    """Input in polar coordinates in mathematical orientation, but plot as wind rose.
+    Mathematical orientation starts on the x-axis and is counter-clockwise, while wind rose
+    starts with 0° in north direction (positive y-axis) and is clockwise oriented.
+
+    Parameters
+    ----------
+    data1 : array_like, shape (N,) or (N,D)
+        values to be plotted from -np.pi to np.pi in regular intervals if data2 is not given,
+        otherwise interpreted as polar coordinates (i.e. 0 lies on positive x-axis, np.pi/2 on
+        positive y-axis etc.)
+    data2 : array_like, shape (N,) or (N,D)
+        values if data1 is used for coordinates
+    args : iterable
+        passed directly to ax.plot()
+    kwargs : dict
+        passed directly to ax.plot()
+
+
+    Examples
+    --------
+
+    Plots a spiral starting at value 0 on the x-axis to 19 after rotating 360° in mathematical
+    positive sense:
+
+    >>> figure = plot_wind_rose(np.linspace(0, 2*np.pi, num=20), np.arange(20))
+
+    Plots two squares with circle markers:
+
+    >>> figure = plot_wind_rose(np.pi/2 * np.arange(5), [2,3] * np.ones((5,2)), args=('o-',))
+
+    """
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
+
+    if data2 is None:
+        values = data1
+        directions = np.linspace(-np.pi, np.pi, num=len(values))
+    elif isinstance(data2, str):
+        raise ValueError(f"invalid type str for data2: {data2}")
+    else:
+        directions = data1
+        values = data2
+
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE, subplot_kw=dict(polar=True))
+
+    ax.plot(-directions + np.pi/2., values, *args, **kwargs)
+    ax.set_theta_direction('clockwise')
+    ax.set_theta_zero_location('N')
+
+    return fig
