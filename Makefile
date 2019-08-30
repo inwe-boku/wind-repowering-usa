@@ -8,7 +8,10 @@ clean:
 run_jupyter:
 	PYTHONPATH=${PYTHONPATH}:${PWD} jupyter notebook #--ip 0.0.0.0 --no-browser
 
-test: unit_test test_notebooks
+test: unit_test doctests test_notebooks
+
+doctests:
+	python3 -m pytest -ra --doctest-modules wind_repower_usa
 
 unit_test:
 	python3 -m pytest -ra --tb=line tests
