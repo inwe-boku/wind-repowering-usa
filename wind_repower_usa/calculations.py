@@ -47,6 +47,10 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
     simulated_energy_gwh : xr.DataArray
         Simulated energy per month [GWh], dims = (time, turbines)
 
+
+    FIXME this modifies the input wind_speed variable! Very dangerous but unclear if solvable
+     without too much memory consumption (via copying)
+
     """
     if power_curve is None:
         power_curve = ge15_77.power_curve
@@ -88,6 +92,7 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
         del already_built
 
     if capacity_scaling:
+        # FIXME this should use turbine_model.capacity_mw not 1500!
         simulated_energy *= (turbines.t_cap / 1500.).fillna(1.)
 
     # inspired by:
