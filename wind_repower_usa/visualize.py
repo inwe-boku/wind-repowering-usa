@@ -333,9 +333,15 @@ def plot_wind_rose(data1, data2=None, args=None, kwargs=None):
         directions = data1
         values = data2
 
+    # close circle if first point and last are not the same, might plot points double
+    directions = np.append(directions, directions[0])
+    values = np.append(values, values[0:1], axis=0)
+
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE, subplot_kw=dict(polar=True))
 
-    ax.plot(-directions + np.pi/2., values, *args, **kwargs)
+    # TODO there might be a 180° error in here, it is calibrated to ERA5 data and wind roses
+    #  it is not entirely clear which direction it should go, would does North mean? North wind?
+    ax.plot(-directions - np.pi/2., values, *args, **kwargs)
     ax.set_theta_direction('clockwise')
     ax.set_theta_zero_location('N')
 
