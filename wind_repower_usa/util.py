@@ -20,3 +20,7 @@ def turbine_locations(turbines):
     ])
 
     return turbines_np
+
+
+def edges_to_center(edges):
+    return edges[:-1] + (edges[1] - edges[0])/2.
