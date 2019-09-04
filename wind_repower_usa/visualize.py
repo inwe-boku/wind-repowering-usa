@@ -7,6 +7,7 @@ import matplotlib.dates as mdates
 from mpl_toolkits import axes_grid1
 from matplotlib.lines import Line2D
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import EngFormatter
 
 from scipy.ndimage.filters import gaussian_filter
 from pandas.plotting import register_matplotlib_converters
@@ -287,7 +288,7 @@ def plot_power_curves():
     return fig
 
 
-def plot_wind_rose(data1, data2=None, args=None, kwargs=None):
+def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None):
     """Input in polar coordinates in mathematical orientation, but plot as wind rose.
     Mathematical orientation starts on the x-axis and is counter-clockwise, while wind rose
     starts with 0° in north direction (positive y-axis) and is clockwise oriented.
@@ -300,6 +301,8 @@ def plot_wind_rose(data1, data2=None, args=None, kwargs=None):
         positive y-axis etc.)
     data2 : array_like, shape (N,) or (N,D)
         values if data1 is used for coordinates
+    percentage : bool
+        scale values by 100 and label with %
     args : iterable
         passed directly to ax.plot()
     kwargs : dict
@@ -339,9 +342,15 @@ def plot_wind_rose(data1, data2=None, args=None, kwargs=None):
 
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE, subplot_kw=dict(polar=True))
 
+    scale = 1.
+    if percentage:
+        ax.yaxis.set_major_formatter(EngFormatter(unit='%'))
+        scale = 100
+
     # TODO there might be a 180° error in here, it is calibrated to ERA5 data and wind roses
     #  it is not entirely clear which direction it should go, would does North mean? North wind?
-    ax.plot(-directions - np.pi/2., values, *args, **kwargs)
+
+    ax.plot(-directions - np.pi/2., scale * values, *args, **kwargs)
     ax.set_theta_direction('clockwise')
     ax.set_theta_zero_location('N')
 
