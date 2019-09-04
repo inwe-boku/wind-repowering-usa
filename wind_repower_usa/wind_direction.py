@@ -10,7 +10,9 @@ from wind_repower_usa.util import turbine_locations, edges_to_center
 
 def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=70,
                    directivity_width=15):
-    """Calculate prevailing wind direction for each turbine location in ``turbines``.
+    """Calculate prevailing wind direction for each turbine location in ``turbines``. A wind rose is
+    calculated by the amount of energy produced from a certain wind direction (not the wind) using
+    a specific power curve.
 
     Parameters
     ----------
