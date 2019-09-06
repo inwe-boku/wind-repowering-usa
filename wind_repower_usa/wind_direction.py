@@ -106,7 +106,12 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
                              coords={'direction': bin_centers,
                                      'turbines': turbines.turbines})
 
-    return wind_rose, np.array(prevail_wind_direction), np.array(directivity)
+    prevail_wind_direction_xr = xr.DataArray(prevail_wind_direction, dims='turbines',
+                                             coords={'turbines': turbines.turbines})
+    directivity = xr.DataArray(directivity, dims='turbines',
+                               coords={'turbines': turbines.turbines})
+
+    return wind_rose, prevail_wind_direction_xr, directivity
 
 
 def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_deg=15):
@@ -145,7 +150,8 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
     # np.digitize does not return the n-th bin, but the n+1-th bin!
     bin_idcs = np.digitize(directions, bin_edges) - 1
-    bin_idcs = xr.DataArray(bin_idcs, dims=('turbines', 'targets'))
+    bin_idcs = xr.DataArray(bin_idcs, dims=('turbines', 'targets'),  # targets = closest turbines
+                            coords={'turbines': turbines.turbines})
 
     locations = turbine_locations(turbines)
 
@@ -153,7 +159,8 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
     # set distance to itself to INF to avoid zero distance minimums later
     distances[np.diag_indices_from(distances)] = np.inf
-    distances = xr.DataArray(distances, dims=('turbines', 'targets'))
+    distances = xr.DataArray(distances, dims=('turbines', 'targets'),
+                             coords={'turbines': turbines.turbines})
 
     bin_centers = edges_to_center(bin_edges)
     direction_bins = xr.DataArray(np.arange(num_bins), dims='direction',
@@ -162,24 +169,52 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
     return xr.where(bin_idcs == direction_bins, distances, np.inf).min(dim='targets')
 
 
-def calc_dist_in_direction(clusters, cluster_per_location, turbines=None):
+def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_direction, turbines=None,
+                           bin_size_deg=15):
+    """
+
+    Parameters
+    ----------
+    clusters
+    cluster_per_location
+    prevail_wind_direction : xr.DataArray
+    turbines : xr.Dataset
+    bin_size_deg
+
+    Returns
+    -------
+    xr.DataArray
+        dims: turbines, direction
+        direction is relative to prevail_wind_direction, i.e. 0rad = in prevailing wind direction,
+        and otherwise counter-clockwise relative to 0rad
+
+    """
     if turbines is None:
         turbines = load_turbines()
 
     n_bins = 24
     distances = np.ones((turbines.sizes['turbines'], n_bins)) * np.nan
 
-    # TODO missing coords for direction or so? also for turbines?
     distances = xr.DataArray(distances, dims=('turbines', 'direction'))
 
+    # TODO this loop could be parallelized, but a lock is needed for writing to distances
     for cluster in clusters[1:]:
         idcs = cluster_per_location == cluster
 
-        # FIXME do something about NaNs in turbines.t_rd, exclude in idcs?
+        if idcs.sum() == 0:
+            continue
+
         # FIXME should pass through all parameters for calc_dist_in_direction_cluster()!
-        d = calc_dist_in_direction_cluster(turbines.sel(turbines=idcs),
-                                           prevail_wind_direction=0.,
-                                           bin_size_deg=15)
+        d = calc_dist_in_direction_cluster(
+            turbines.sel(turbines=idcs),
+            prevail_wind_direction=0.,#prevail_wind_direction.sel(turbines=idcs),
+            bin_size_deg=bin_size_deg
+        )
         distances.loc[{'turbines': idcs}] = d
+
+    # This is dangerously assuming that calc_dist_in_direction_cluster() always returns same
+    # coordinates for dim=direction (which should be the case because bins and range in
+    # np.histogram_bin_edges() is fixed) and that distances contains all turbines.
+    distances = distances.assign_coords(direction=d.direction, turbines=turbines.turbines)
 
     return distances
