@@ -50,6 +50,9 @@ calc_repower_potential:
 calc_min_distances:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_min_distances.py
 
+calc_prevail_wind_direction:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_prevail_wind_direction.py
+
 generate_figures:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/generate_figures.py
 
