@@ -288,7 +288,7 @@ def plot_power_curves():
     return fig
 
 
-def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None):
+def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None, fig=None, ax=None):
     """Input in polar coordinates in mathematical orientation, but plot as wind rose.
     Mathematical orientation starts on the x-axis and is counter-clockwise, while wind rose
     starts with 0° in north direction (positive y-axis) and is clockwise oriented.
@@ -307,6 +307,10 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None):
         passed directly to ax.plot()
     kwargs : dict
         passed directly to ax.plot()
+    fig : matplotlib.figure.Figure
+        matplotlib figure to be used if not None
+    ax : matplotlib.projections.polar.PolarAxes
+        matplotlib axis to be used if not None
 
 
     Examples
@@ -340,7 +344,8 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None):
     directions = np.append(directions, directions[0])
     values = np.append(values, values[0:1], axis=0)
 
-    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE, subplot_kw=dict(polar=True))
+    if fig is None or ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=FIGSIZE, subplot_kw=dict(polar=True))
 
     scale = 1.
     if percentage:
@@ -354,4 +359,4 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None):
     ax.set_theta_direction('clockwise')
     ax.set_theta_zero_location('N')
 
-    return fig
+    return fig, ax
