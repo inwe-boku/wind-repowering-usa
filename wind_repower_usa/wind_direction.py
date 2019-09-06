@@ -134,11 +134,13 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
         and otherwise counter-clockwise relative to 0°
 
     """
-    x1, x2 = np.meshgrid(turbines.xlong, turbines.xlong)
-    y1, y2 = np.meshgrid(turbines.ylat, turbines.ylat)
+    # target locations to determine closest location from dim=turbines
+    target = turbines.rename({'turbines': 'target'})
 
     # pairwise directions from each turbine to each other one
-    directions = np.arctan2(y1 - y2, x1 - x2) - prevail_wind_direction
+    # FIXME the sign here is not entirely clear... could be a 180° mistake here
+    directions = np.arctan2(target.ylat - turbines.ylat, target.xlong - turbines.xlong)
+    directions = directions - prevail_wind_direction
     directions = (directions + np.pi) % (2 * np.pi) - np.pi
 
     # directions is actually not used here (except for dtype)
@@ -197,8 +199,14 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
 
     distances = xr.DataArray(distances, dims=('turbines', 'direction'))
 
+    d = None
+
     # TODO this loop could be parallelized, but a lock is needed for writing to distances
-    for cluster in clusters[1:]:
+    for cluster in clusters:
+        if cluster == -1:
+            # -1 is the category for all single-turbine clusters
+            continue
+
         idcs = cluster_per_location == cluster
 
         if idcs.sum() == 0:
@@ -207,10 +215,14 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
         # FIXME should pass through all parameters for calc_dist_in_direction_cluster()!
         d = calc_dist_in_direction_cluster(
             turbines.sel(turbines=idcs),
-            prevail_wind_direction=0.,#prevail_wind_direction.sel(turbines=idcs),
+            prevail_wind_direction=prevail_wind_direction.sel(turbines=idcs),
             bin_size_deg=bin_size_deg
         )
         distances.loc[{'turbines': idcs}] = d
+
+    if d is None:
+        raise ValueError("no location found for given clusters and cluster_per_location: "
+                         f"clusters={clusters}, cluster_per_location={cluster_per_location}")
 
     # This is dangerously assuming that calc_dist_in_direction_cluster() always returns same
     # coordinates for dim=direction (which should be the case because bins and range in
