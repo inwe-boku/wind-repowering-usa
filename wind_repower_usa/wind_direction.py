@@ -16,7 +16,8 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
 
     Parameters
     ----------
-    turbines : xr.Dataset
+    turbines : xr.DataSet
+        as returned by load_turbines()
     wind_speed : xr.DataArray
         as returned by load_wind_speed()
     wind_velocity : xr.Dataset
@@ -121,9 +122,12 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
     Parameters
     ----------
-    turbines : xr.Dataset
-    prevail_wind_direction : float
-        in rad, 0rad = east, np.pi = north
+    turbines : xr.DataSet
+        as returned by load_turbines()
+    prevail_wind_direction : xr.DataArray  (dim = turbines)
+        will be used to orientate distances relative to prevailing wind direction,
+        pass an xr.DataArray with zeros to get distances per absolute directions (not relative to
+        prevailing wind direction)
     bin_size_deg : float
 
     Returns
@@ -138,11 +142,9 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
     target = turbines.rename({'turbines': 'target'})
 
     # pairwise directions from each turbine to each other one
-    # FIXME the sign here is not entirely clear... could be a 180° mistake here
     directions = np.arctan2(target.ylat - turbines.ylat, target.xlong - turbines.xlong)
     directions = directions - prevail_wind_direction
 
-    # FIXME what if directions contains values less than np.pi? does this still work?
     directions = (directions + np.pi) % (2 * np.pi) - np.pi
 
     # directions is actually not used here (except for dtype)
@@ -182,7 +184,8 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
     clusters
     cluster_per_location
     prevail_wind_direction : xr.DataArray
-    turbines : xr.Dataset
+    turbines : xr.DataSet
+        as returned by load_turbines()
     bin_size_deg
 
     Returns
@@ -206,7 +209,6 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
     # TODO this loop could be parallelized, but a lock is needed for writing to distances
     for idcs, cluster in iterate_clusters(clusters, cluster_per_location):
 
-        # FIXME should pass through all parameters for calc_dist_in_direction_cluster()!
         d = calc_dist_in_direction_cluster(
             turbines.sel(turbines=idcs),
             prevail_wind_direction=prevail_wind_direction.sel(turbines=idcs),
@@ -227,16 +229,21 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
 
 
 def calc_distance_factors(turbines, distances):
-    """
+    """Returns a distance factor per turbine location and direction, i.e. for each turbine and
+    direction how many times its rotor diameter is the next turbine location.
 
     Parameters
     ----------
-    turbines
-    distances
+    turbines : xr.DataSet
+        as returned by load_turbines()
+    distances : xrDataArray
+        as returned by calc_dist_in_direction()
 
     Returns
     -------
-    dims = turbines, direction
+    xr.DataArray
+        dims = turbines, direction
+        NaN for unknown rotor diameter and if distance to next turbine is infinite
 
     """
     idcs_not_nan = ~(np.isnan(turbines.t_rd))
