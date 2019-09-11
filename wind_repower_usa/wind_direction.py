@@ -141,6 +141,8 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
     # FIXME the sign here is not entirely clear... could be a 180° mistake here
     directions = np.arctan2(target.ylat - turbines.ylat, target.xlong - turbines.xlong)
     directions = directions - prevail_wind_direction
+
+    # FIXME what if directions contains values less than np.pi? does this still work?
     directions = (directions + np.pi) % (2 * np.pi) - np.pi
 
     # directions is actually not used here (except for dtype)
