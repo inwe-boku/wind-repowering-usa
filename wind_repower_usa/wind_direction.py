@@ -157,11 +157,10 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
     # np.digitize does not return the n-th bin, but the n+1-th bin!
     bin_idcs = np.digitize(directions, bin_edges) - 1
-    bin_idcs = xr.DataArray(bin_idcs, dims=('turbines', 'targets'),  # targets = closest turbines
+    bin_idcs = xr.DataArray(bin_idcs, dims=('targets', 'turbines'),  # targets = closest turbines
                             coords={'turbines': turbines.turbines})
 
     locations = turbine_locations(turbines)
-
     distances = geolocation_distances(locations)
 
     # set distance to itself to INF to avoid zero distance minimums later
