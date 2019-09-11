@@ -5,7 +5,7 @@ from scipy.ndimage import uniform_filter
 from wind_repower_usa.calculations import calc_simulated_energy
 from wind_repower_usa.geographic_coordinates import geolocation_distances
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.util import turbine_locations, edges_to_center
+from wind_repower_usa.util import turbine_locations, edges_to_center, iterate_clusters
 
 
 def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=70,
@@ -202,15 +202,7 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
     d = None
 
     # TODO this loop could be parallelized, but a lock is needed for writing to distances
-    for cluster in clusters:
-        if cluster == -1:
-            # -1 is the category for all single-turbine clusters
-            continue
-
-        idcs = cluster_per_location == cluster
-
-        if idcs.sum() == 0:
-            continue
+    for idcs, cluster in iterate_clusters(clusters, cluster_per_location):
 
         # FIXME should pass through all parameters for calc_dist_in_direction_cluster()!
         d = calc_dist_in_direction_cluster(
