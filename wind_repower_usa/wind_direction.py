@@ -3,6 +3,7 @@ import xarray as xr
 from scipy.ndimage import uniform_filter
 
 from wind_repower_usa.calculations import calc_simulated_energy
+from wind_repower_usa.constants import KM_TO_METER
 from wind_repower_usa.geographic_coordinates import geolocation_distances
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.util import turbine_locations, edges_to_center, iterate_clusters
@@ -246,9 +247,7 @@ def calc_distance_factors(turbines, distances):
         NaN for unknown rotor diameter and if distance to next turbine is infinite
 
     """
-    idcs_not_nan = ~(np.isnan(turbines.t_rd))
-    distance_factors = (distances.sel(turbines=idcs_not_nan) * 1e3 /
-                        turbines.sel(turbines=idcs_not_nan).t_rd)
+    distance_factors = distances * KM_TO_METER / turbines.t_rd
     distance_factors = distance_factors.where(distance_factors < np.inf)
 
     return distance_factors
