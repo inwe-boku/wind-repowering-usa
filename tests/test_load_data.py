@@ -16,8 +16,8 @@ def test_load_generated_energy_gwh():
 
     assert generated_energy_gwh.sel(time='2001-01-01') == 389.25
     assert generated_energy_gwh.sel(time='2013-12-01') == 13967.05881
-    assert len(generated_energy_gwh) == 217
-    assert np.max(generated_energy_gwh) == 27283.19006
+    assert len(generated_energy_gwh) == 222
+    assert np.max(generated_energy_gwh) == 30217.13993
 
     assert generated_energy_gwh.dtype == np.float
     assert isinstance(generated_energy_gwh, xr.DataArray)
