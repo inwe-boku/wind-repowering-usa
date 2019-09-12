@@ -12,8 +12,9 @@ from wind_repower_usa.util import turbine_locations, edges_to_center, iterate_cl
 def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=70,
                    directivity_width=15):
     """Calculate prevailing wind direction for each turbine location in ``turbines``. A wind rose is
-    calculated by the amount of energy produced from a certain wind direction (not the wind) using
-    a specific power curve.
+    calculated by the amount of energy produced by wind blowing in a certain wind direction using a
+    specific power curve. Note that definition of wind rose differs slightly from usual
+    conventions, because this calculates the amplitude using produced energy and not wind speed.
 
     Parameters
     ----------
@@ -117,9 +118,8 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
 
 
 def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_deg=15):
-    """Directions between 0° and 360° will be grouped into bins of size ``bin_size_deg``,
-    then for each turbine location the distance to the next turbine is calculated for each
-    direction bin.
+    """Same as calc_dist_in_direction(), but intended for one cluster only. Calculates a squared
+    distance matrix (and a squared direction matrix) and therefore RAM usage is O(len(turbines)^2).
 
     Parameters
     ----------
@@ -130,6 +130,7 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
         pass an xr.DataArray with zeros to get distances per absolute directions (not relative to
         prevailing wind direction)
     bin_size_deg : float
+        size of direction bins in degrees
 
     Returns
     -------
@@ -177,16 +178,25 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
 def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_direction, turbines=None,
                            bin_size_deg=15):
-    """
+    """Directions between 0° and 360° will be grouped into bins of size ``bin_size_deg``,
+    then for each turbine location the distance to the next turbine is calculated for each
+    direction bin. Assumes that distance between clusters is infinite and therefore computation
+    can be done for each cluster independently.
 
     Parameters
     ----------
-    clusters
-    cluster_per_location
-    prevail_wind_direction : xr.DataArray
+    clusters : array_like of int
+        list of cluster indices, -1 for unclustered turbines (single turbine locations)
+    cluster_per_location : array_like of int
+        cluster index for each turbine
+    prevail_wind_direction : xr.DataArray  (dim = turbines)
+        will be used to orientate distances relative to prevailing wind direction,
+        pass an xr.DataArray with zeros to get distances per absolute directions (not relative to
+        prevailing wind direction)
     turbines : xr.DataSet
         as returned by load_turbines()
-    bin_size_deg
+    bin_size_deg : float
+        size of direction bins in degrees
 
     Returns
     -------
