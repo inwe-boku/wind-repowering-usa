@@ -140,16 +140,19 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
         and otherwise counter-clockwise relative to 0°
 
     """
-    # target locations to determine closest location from dim=turbines
+    # targets are a copy of turbines: for each turbine locations angle of the vector to each
+    # target location will be calculated, sorted into bins of regular angles and then the closest
+    # turbine per bin is chosen to assign a distance to turbine per direction.
     targets = turbines.rename({'turbines': 'targets'})
 
-    # pairwise directions from each turbine to each other one
+    # pairwise directions from each turbine to each other one - meshgrid magic using xarray, yeah!
     directions = np.arctan2(targets.ylat - turbines.ylat, targets.xlong - turbines.xlong)
     directions = directions - prevail_wind_direction
 
+    # all angles in mathematical orientation between -pi and pi
     directions = (directions + np.pi) % (2 * np.pi) - np.pi
 
-    # directions is actually not used here (except for dtype)
+    # directions is actually not used here, because bins and range are provided (except for dtype)
     bin_edges = np.histogram_bin_edges(directions,
                                        bins=360//bin_size_deg,
                                        range=(-np.pi, np.pi))
@@ -157,6 +160,9 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
     num_bins = len(bin_edges) - 1  # Attention, fencepost problem!
 
     # np.digitize does not return the n-th bin, but the n+1-th bin!
+    # This is not a symmetric matrix, directions get flipped by 180° if dims is provided in wrong
+    # order, but it is not at all clear how xarray defines the order (probably the order of
+    # usage of dims 'targets' and 'turbines' in the arctan2() call above).
     bin_idcs = np.digitize(directions, bin_edges) - 1
     bin_idcs = xr.DataArray(bin_idcs, dims=('targets', 'turbines'),  # targets = closest turbines
                             coords={'turbines': turbines.turbines})
