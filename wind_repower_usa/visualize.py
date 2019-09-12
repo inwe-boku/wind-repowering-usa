@@ -59,7 +59,7 @@ def plot_simulated_generated_energy(simulated_energy_gwh):
 def plot_rel_error_energy_simulation(simulated_energy_gwh,
                                      generated_energy_gwh):
     """Plot simulation - generated energy relative to generated energy."""
-    rel_error = 100. * (simulated_energy_gwh/generated_energy_gwh - 1)
+    rel_error = 100. * (simulated_energy_gwh / generated_energy_gwh - 1)
 
     lines, = plt.plot(simulated_energy_gwh.time, rel_error, 'o-')
 
@@ -73,7 +73,7 @@ def plot_rel_error_energy_simulation(simulated_energy_gwh,
     lines.figure.set_figwidth(20)
     lines.figure.set_figheight(12)
 
-    years_locator = mdates.YearLocator()    # every year
+    years_locator = mdates.YearLocator()  # every year
     months_locator = mdates.MonthLocator()  # every month
     lines.figure.axes[0].xaxis.set_major_locator(years_locator)
     lines.figure.axes[0].xaxis.set_minor_locator(months_locator)
@@ -137,7 +137,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
 
         y = {
             # FIXME this division should be elsewhere
-            'power_generation': power_generation/365/24,
+            'power_generation': power_generation / 365 / 24,
             'num_turbines': repower_potential.num_turbines
         }
         ax.plot(num_new_turbines, y[variable], linestyle=distance_factor_style[distance_factor],
@@ -160,7 +160,7 @@ def _add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
     https://stackoverflow.com/a/33505522/859591
     """
     divider = axes_grid1.make_axes_locatable(im.axes)
-    width = axes_grid1.axes_size.AxesY(im.axes, aspect=1./aspect)
+    width = axes_grid1.axes_size.AxesY(im.axes, aspect=1. / aspect)
     pad = axes_grid1.axes_size.Fraction(pad_fraction, width)
     current_ax = plt.gca()
     cax = divider.append_axes("right", size=width, pad=pad)
@@ -243,11 +243,11 @@ def plot_min_distances(turbines, min_distances):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
     idcs_cut_off = min_distances_not_nan < 500
-    bin_centers = (bin_edges[1:] + bin_edges[:-1])/2.
+    bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.
     x = bin_centers[bin_idcs[idcs_cut_off] - 1]
     ax = sns.stripplot(x=x, y=min_distances_not_nan[idcs_cut_off], jitter=.4, size=1, color='k')
 
-    ax.plot(2 * bin_centers,  label='2x', color='#f0c220')
+    ax.plot(2 * bin_centers, label='2x', color='#f0c220')
     ax.plot(3 * bin_centers, label='3x', color='#7a6952')
     ax.plot(4 * bin_centers, label='4x', color='#c72321')
     ax.plot(6 * bin_centers, label='6x', color='#fbd7a9')
@@ -355,7 +355,7 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None, f
     # TODO there might be a 180° error in here, it is calibrated to ERA5 data and wind roses
     #  it is not entirely clear which direction it should go, would does North mean? North wind?
 
-    ax.plot(-directions - np.pi/2., scale * values, *args, **kwargs)
+    ax.plot(-directions - np.pi / 2., scale * values, *args, **kwargs)
     ax.set_theta_direction('clockwise')
     ax.set_theta_zero_location('N')
 
