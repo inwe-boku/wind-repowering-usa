@@ -209,7 +209,7 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
     if turbines is None:
         turbines = load_turbines()
 
-    n_bins = 24
+    n_bins = 360//bin_size_deg
     distances = np.ones((turbines.sizes['turbines'], n_bins)) * np.nan
 
     distances = xr.DataArray(distances, dims=('turbines', 'direction'))
