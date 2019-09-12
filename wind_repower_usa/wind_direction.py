@@ -182,7 +182,7 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
     return xr.where(bin_idcs == direction_bins, distances, np.inf).min(dim='targets')
 
 
-def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_direction, turbines=None,
+def calc_dist_in_direction(cluster_per_location, prevail_wind_direction, turbines=None,
                            bin_size_deg=15):
     """Directions between 0° and 360° will be grouped into bins of size ``bin_size_deg``,
     then for each turbine location the distance to the next turbine is calculated for each
@@ -191,8 +191,6 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
 
     Parameters
     ----------
-    clusters : array_like of int
-        list of cluster indices, -1 for unclustered turbines (single turbine locations)
     cluster_per_location : array_like of int
         cluster index for each turbine
     prevail_wind_direction : xr.DataArray  (dim = turbines)
@@ -222,19 +220,24 @@ def calc_dist_in_direction(clusters, cluster_per_location, prevail_wind_directio
 
     d = None
 
-    # TODO this loop could be parallelized, but a lock is needed for writing to distances
-    for idcs, cluster in iterate_clusters(clusters, cluster_per_location):
+    iterator = zip(turbines.groupby(cluster_per_location),
+                   prevail_wind_direction.groupby(cluster_per_location))
 
+    # TODO this loop could be parallelized, but a lock is needed for writing to distances, right?
+    #  how about using dask.bag.foldby? would it help to use dask.delayed to speed up the inner
+    #  loop and then combine results sequential?
+    for ((idx_turbine, turbines_cluster), (idx_prevail, prevail_cluster)) in iterator:
         d = calc_dist_in_direction_cluster(
-            turbines.sel(turbines=idcs),
-            prevail_wind_direction=prevail_wind_direction.sel(turbines=idcs),
+            turbines_cluster,
+            prevail_wind_direction=prevail_cluster,
             bin_size_deg=bin_size_deg
         )
+        idcs = cluster_per_location == idx_turbine
         distances.loc[{'turbines': idcs}] = d
 
     if d is None:
         raise ValueError("no location found for given clusters and cluster_per_location: "
-                         f"clusters={clusters}, cluster_per_location={cluster_per_location}")
+                         f"cluster_per_location={cluster_per_location}")
 
     # This is dangerously assuming that calc_dist_in_direction_cluster() always returns same
     # coordinates for dim=direction (which should be the case because bins and range in

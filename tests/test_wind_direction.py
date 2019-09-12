@@ -63,13 +63,12 @@ def test_calc_dist_in_direction_turbines_in_a_row():
         coords={'turbines': np.arange(13, num_turbines + 13)}
     )
 
-    clusters = np.array([-1, 0])
-    cluster_per_location = np.zeros(num_turbines)
+    cluster_per_location = xr.DataArray(np.zeros(num_turbines), dims='turbines',
+                                        name='cluster_per_location')
     prevail_wind_direction = xr.DataArray(np.zeros(num_turbines), dims='turbines',
                                           coords={'turbines': turbines.turbines})
 
-    distances = calc_dist_in_direction(clusters,
-                                       cluster_per_location,
+    distances = calc_dist_in_direction(cluster_per_location,
                                        prevail_wind_direction,
                                        turbines=turbines,
                                        bin_size_deg=30)
@@ -98,14 +97,13 @@ def test_calc_dist_in_direction_turbines_in_a_grid():
         coords={'turbines': np.arange(13, num_turbines + 13)}
     )
 
-    clusters = np.array([-1, 0, 1])
-    cluster_per_location = np.zeros(num_turbines)
+    cluster_per_location = xr.DataArray(np.zeros(num_turbines), dims='turbines',
+                                        name='cluster_per_location')
     cluster_per_location[-3:] = 1
     prevail_wind_direction = xr.DataArray(np.zeros(num_turbines), dims='turbines',
                                           coords={'turbines': turbines.turbines})
 
-    distances = calc_dist_in_direction(clusters,
-                                       cluster_per_location,
+    distances = calc_dist_in_direction(cluster_per_location,
                                        prevail_wind_direction,
                                        turbines=turbines,
                                        bin_size_deg=45)
