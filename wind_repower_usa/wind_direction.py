@@ -141,10 +141,10 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
 
     """
     # target locations to determine closest location from dim=turbines
-    target = turbines.rename({'turbines': 'target'})
+    targets = turbines.rename({'turbines': 'targets'})
 
     # pairwise directions from each turbine to each other one
-    directions = np.arctan2(target.ylat - turbines.ylat, target.xlong - turbines.xlong)
+    directions = np.arctan2(targets.ylat - turbines.ylat, targets.xlong - turbines.xlong)
     directions = directions - prevail_wind_direction
 
     directions = (directions + np.pi) % (2 * np.pi) - np.pi
