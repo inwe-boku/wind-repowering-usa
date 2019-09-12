@@ -17,6 +17,7 @@ from wind_repower_usa.calculations import calc_bounding_box_usa
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGSIZE
 from wind_repower_usa.load_data import load_generated_energy_gwh, load_turbines
 from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
+from wind_repower_usa.util import turbine_locations
 
 
 def plot_simulated_generated_energy(simulated_energy_gwh):
@@ -358,5 +359,56 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None, f
     ax.plot(-directions - np.pi / 2., scale * values, *args, **kwargs)
     ax.set_theta_direction('clockwise')
     ax.set_theta_zero_location('N')
+
+    return fig, ax
+
+
+def plot_locations(turbines=None, idcs=None, directions=None, colors=None):
+    """Plot turbine locations and add arrows to indicate wind directions.
+
+    FIXME does not use proper projection, probably valid only for small regions.
+
+    Parameters
+    ----------
+    turbines : xr.DataSet
+        as returned by load_turbines()
+    idcs : array_like of type boolean
+        select turbines to plot
+    directions : dict of form label: array_like
+        array contains directions in rad
+    colors : iterable
+        color of arrows for each item in directions
+
+    """
+    if turbines is None:
+        turbines = load_turbines()
+    if idcs is None:
+        idcs = np.ones_like(turbines.xlong).astype(np.bool)
+    if directions is None:
+        directions = {}
+    if colors is None:
+        colors = [None] * len(directions)
+
+    fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+
+    locations = turbine_locations(turbines.sel(turbines=idcs))
+
+    ax.plot(locations.T[1], locations.T[0], 'o')
+
+    for (label, values), color in zip(directions.items(), colors):
+        ax.quiver(locations.T[1],
+                  locations.T[0],
+                  np.cos(values.sel(turbines=idcs)),
+                  np.sin(values.sel(turbines=idcs)),
+                  width=0.002,
+                  label=label,
+                  color=color,
+                  )
+
+    ax.set_aspect('equal')
+
+    plt.xlabel('Longitude [deg]')
+    plt.ylabel('Latitude [deg]')
+    plt.legend()
 
     return fig, ax
