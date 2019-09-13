@@ -6,7 +6,7 @@ from wind_repower_usa.calculations import calc_simulated_energy
 from wind_repower_usa.constants import KM_TO_METER
 from wind_repower_usa.geographic_coordinates import geolocation_distances
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.util import turbine_locations, edges_to_center, iterate_clusters
+from wind_repower_usa.util import turbine_locations, edges_to_center
 
 
 def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=70,
