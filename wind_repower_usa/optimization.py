@@ -13,9 +13,12 @@ from wind_repower_usa.util import turbine_locations
 def calc_optimal_locations_cluster(locations, min_distance, power_generation):
     """For a set of locations, this will calculate an optimal subset of locations where turbines
     are to be placed, such that the power generation is maximized and a distance threshold is not
-    violated.
+    violated:
 
-    This is mean to be run on a small set of locations, e.g. a couple of hundred (or thousands).
+    Objective function: maximize sum(power_generation[i], for all turbines i if is optimal location)
+    s.t.: distance(i, j) >= min_distance  for i,j where i and j are optimal locations
+
+    This is meant to be run on a small set of locations, e.g. a couple of hundred (or thousands).
 
     Parameters
     ----------
@@ -48,6 +51,8 @@ def calc_optimal_locations_cluster(locations, min_distance, power_generation):
     #  with a smaller list
     lhs = pairwise_distances/min_distance
     upper_triangle = ~np.tri(*pairwise_distances.shape, dtype=np.bool)
+
+    # note that this is equivalent to lhs[i,j] >= is_optimal_location[i] * is_optimal_location[j]
     constraints = [lhs[i, j] >= (is_optimal_location[i] + is_optimal_location[j] - 1)
                    for i, j in zip(*np.where((pairwise_distances < min_distance) &
                                              upper_triangle))]
