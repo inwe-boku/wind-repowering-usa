@@ -10,6 +10,26 @@ from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.util import turbine_locations
 
 
+def _constraints_obj_func_single_model(min_distance, num_locations,
+                                       pairwise_distances, power_generation):
+    # for each location, if True a new turbine should be built, otherwise only decommission old one
+    is_optimal_location = cp.Variable(num_locations, boolean=True)
+
+    # TODO not sure if it is faster to have this vectorized with a huge matrix or not vectorized
+    #  with a smaller list
+    lhs = pairwise_distances / min_distance
+    upper_triangle = ~np.tri(*pairwise_distances.shape, dtype=np.bool)
+    # note that this is equivalent to lhs[i,j] >= is_optimal_location[i] * is_optimal_location[j]
+    constraints = [lhs[i, j] >= (is_optimal_location[i] + is_optimal_location[j] - 1)
+                   for i, j in zip(*np.where((pairwise_distances < min_distance) &
+                                             upper_triangle))]
+    logging.info("Number of locations: %s", num_locations)
+    logging.info("Number of constraints: %s", len(constraints))
+    obj = cp.Maximize(power_generation @ is_optimal_location)
+
+    return constraints, obj, is_optimal_location
+
+
 def calc_optimal_locations_cluster(locations, min_distance, power_generation):
     """For a set of locations, this will calculate an optimal subset of locations where turbines
     are to be placed, such that the power generation is maximized and a distance threshold is not
@@ -42,25 +62,13 @@ def calc_optimal_locations_cluster(locations, min_distance, power_generation):
     assert locations.shape[1] == 2
     assert power_generation.shape == (num_locations,)
 
-    # for each location, if True a new turbine should be built, otherwise only decommission old one
-    is_optimal_location = cp.Variable(num_locations, boolean=True)
-
     pairwise_distances = geolocation_distances(locations)
 
-    # TODO not sure if it is faster to have this vectorized with a huge matrix or not vectorized
-    #  with a smaller list
-    lhs = pairwise_distances/min_distance
-    upper_triangle = ~np.tri(*pairwise_distances.shape, dtype=np.bool)
+    constraints, obj, is_optimal_location = _constraints_obj_func_single_model(min_distance,
+                                                                               num_locations,
+                                                                               pairwise_distances,
+                                                                               power_generation)
 
-    # note that this is equivalent to lhs[i,j] >= is_optimal_location[i] * is_optimal_location[j]
-    constraints = [lhs[i, j] >= (is_optimal_location[i] + is_optimal_location[j] - 1)
-                   for i, j in zip(*np.where((pairwise_distances < min_distance) &
-                                             upper_triangle))]
-
-    logging.info("Number of locations: %s", num_locations)
-    logging.info("Number of constraints: %s", len(constraints))
-
-    obj = cp.Maximize(power_generation @ is_optimal_location)
     problem = cp.Problem(obj, constraints)
 
     problem.solve(solver=cp.GUROBI)
