@@ -393,7 +393,7 @@ def plot_locations(turbines=None, idcs=None, directions=None, colors=None):
 
     locations = turbine_locations(turbines.sel(turbines=idcs))
 
-    ax.plot(locations.T[1], locations.T[0], 'o')
+    ax.plot(locations.T[1], locations.T[0], 'o', label='Wind turbine location')
 
     for (label, values), color in zip(directions.items(), colors):
         ax.quiver(locations.T[1],
