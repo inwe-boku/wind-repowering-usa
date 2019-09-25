@@ -117,6 +117,46 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     return wind_rose, prevail_wind_direction_xr, directivity
 
 
+def calc_directions(turbines, prevail_wind_direction=None):
+    """Calculate pairwise directions from each turbine location to each other turbine location.
+
+    Parameters
+    ----------
+    turbines : xr.DataSet
+        as returned by load_turbines()
+    prevail_wind_direction : xr.DataArray  (dim = turbines)
+        will be used to orientate distances relative to prevailing wind direction,
+        pass an xr.DataArray with zeros to get distances per absolute directions (not relative to
+        prevailing wind direction)
+
+    Returns
+    -------
+    xr.DataArray (dims: turbines, targets)
+        direction of vector from turbines to target, where targets is a copy of turbines relative to
+        prevailing wind direction, NaN in diagonal to avoid subsequent mistakes when calculating
+        with diagonal accidentally
+
+    """
+    # targets are a copy of turbines: for each turbine locations angle of the vector to each
+    # target location will be calculated, sorted into bins of regular angles and then the closest
+    # turbine per bin is chosen to assign a distance to turbine per direction.
+    targets = turbines.rename({'turbines': 'targets'})
+
+    # pairwise directions from each turbine to each other one - meshgrid magic using xarray, yeah!
+    directions = np.arctan2(targets.ylat - turbines.ylat, targets.xlong - turbines.xlong)
+
+    if prevail_wind_direction is not None:
+        directions = directions - prevail_wind_direction
+
+    # all angles in mathematical orientation between -pi and pi
+    directions = (directions + np.pi) % (2 * np.pi) - np.pi
+
+    # there is no real meaning to calculate the rotation of a vector of length 0...
+    directions.values[np.diag_indices_from(directions.values)] = np.nan
+
+    return directions
+
+
 def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_deg=15):
     """Same as calc_dist_in_direction(), but intended for one cluster only. Calculates a squared
     distance matrix (and a squared direction matrix) and therefore RAM usage is O(len(turbines)^2).
@@ -140,17 +180,7 @@ def calc_dist_in_direction_cluster(turbines, prevail_wind_direction, bin_size_de
         and otherwise counter-clockwise relative to 0°
 
     """
-    # targets are a copy of turbines: for each turbine locations angle of the vector to each
-    # target location will be calculated, sorted into bins of regular angles and then the closest
-    # turbine per bin is chosen to assign a distance to turbine per direction.
-    targets = turbines.rename({'turbines': 'targets'})
-
-    # pairwise directions from each turbine to each other one - meshgrid magic using xarray, yeah!
-    directions = np.arctan2(targets.ylat - turbines.ylat, targets.xlong - turbines.xlong)
-    directions = directions - prevail_wind_direction
-
-    # all angles in mathematical orientation between -pi and pi
-    directions = (directions + np.pi) % (2 * np.pi) - np.pi
+    directions = calc_directions(turbines, prevail_wind_direction)
 
     # directions is actually not used here, because bins and range are provided (except for dtype)
     bin_edges = np.histogram_bin_edges(directions,

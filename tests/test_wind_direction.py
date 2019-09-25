@@ -2,7 +2,9 @@ import numpy as np
 import xarray as xr
 
 from wind_repower_usa.constants import EARTH_RADIUS_KM
-from wind_repower_usa.wind_direction import calc_wind_rose, calc_dist_in_direction
+from wind_repower_usa.wind_direction import calc_wind_rose
+from wind_repower_usa.wind_direction import calc_directions
+from wind_repower_usa.wind_direction import calc_dist_in_direction
 
 
 def test_calc_wind_rose():
@@ -52,6 +54,28 @@ def test_calc_wind_rose():
 
     # relative rations should integrate to 1 because density=True in np.histogram()
     np.testing.assert_allclose(wind_rose.integrate('direction'), 1)
+
+
+def test_calc_directions():
+    num_turbines = 10
+    turbines = xr.Dataset({
+        'xlong': ('turbines', 1e-4 * np.arange(num_turbines, dtype=np.float64)),
+        'ylat': ('turbines', 1e-4 * np.arange(num_turbines, dtype=np.float64)),
+    },
+        coords={'turbines': np.arange(13, num_turbines + 13)}
+    )
+
+    prevail_wind_direction = xr.DataArray(np.zeros(num_turbines), dims='turbines',
+                                          coords={'turbines': turbines.turbines})
+
+    directions = calc_directions(turbines, prevail_wind_direction)
+
+    assert directions.dims == ('targets', 'turbines')
+    np.testing.assert_array_equal(directions.values[np.diag_indices_from(directions.values)],
+                                  np.nan * np.ones(num_turbines))
+
+    assert directions.isel(turbines=0, targets=1) == np.pi/4
+    assert directions.isel(turbines=3, targets=1) == -3/4 * np.pi
 
 
 def test_calc_dist_in_direction_turbines_in_a_row():
