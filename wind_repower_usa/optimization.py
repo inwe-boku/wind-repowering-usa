@@ -4,10 +4,13 @@ import numpy as np
 import cvxpy as cp
 import xarray as xr
 
+from wind_repower_usa.config import INTERIM_DIR
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import geolocation_distances, calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.util import turbine_locations
+from wind_repower_usa.wind_direction import calc_directions
+from wind_repower_usa.turbine_models import new_turbine_models
 
 
 def _constraints_obj_func_single_model(turbines, min_distance, num_locations,
@@ -28,6 +31,73 @@ def _constraints_obj_func_single_model(turbines, min_distance, num_locations,
     obj = cp.Maximize(power_generation @ is_optimal_location)
 
     return constraints, obj, is_optimal_location
+
+
+def _calc_distance_factors(turbines):
+    """
+
+    Returns
+    -------
+
+    """
+    distance_factors_all_turbines = xr.open_dataarray(INTERIM_DIR / 'wind-direction' /
+                                                      'distance_factors.nc')
+
+    prevail_wind_direction = xr.open_dataarray(
+        INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
+
+    distance_factors = distance_factors_all_turbines.quantile(0.05, dim='turbines')
+
+    # for interpolation we need distance factors at least in the interval [-pi, pi], so add here
+    # one data point at the beginning and the end by wrapping around (angles are 2*pi periodic)
+    end = distance_factors.sel(direction=np.pi, method='nearest', tolerance=0.2)
+    end['direction'] -= 2*np.pi
+    begin = distance_factors.sel(direction=-np.pi, method='nearest', tolerance=0.2)
+    begin['direction'] += 2*np.pi
+    distance_factors = xr.concat((begin, distance_factors, end), dim='direction')
+
+    directions = calc_directions(turbines, prevail_wind_direction).fillna(0.)
+
+    distance_factors_turbines = distance_factors.interp(direction=directions).values
+
+    return distance_factors_turbines
+
+
+def _constraints_obj_func_multiple_models(turbines, min_distance, num_locations,
+                                          pairwise_distances, power_generation):
+    num_models = len(new_turbine_models())
+
+    # for each location, if True a new turbine should be built, otherwise only decommission old one
+    is_optimal = cp.Variable((num_models, num_locations), boolean=True)
+
+    rotor_diameter = np.array([x.rotor_diameter_m for x in new_turbine_models()]) * METER_TO_KM
+
+    # can we build model k at location i? we can if:
+    #  - j is not built (for all j != i)
+    #  - i is not built
+    #  - i is far enough away from j
+    # constraints = pairwise_distances[:, :, np.newaxis] >= (
+    #    rotor_diameter[np.newaxis, np.newaxis, :]
+    #    * distance_factor[:, :, np.newaxis] *
+    #    is_optimal[k, i] + cp.atoms.affine.sum.sum(is_optimal, axis=0)[j] - 1)
+
+    pairwise_distances[np.diag_indices_from(pairwise_distances)] = np.inf
+
+    distance_factors = _calc_distance_factors(turbines)
+    # FIXME this just for backward compatibility to check unittests
+    distance_factors[:] = min_distance / rotor_diameter[0]
+
+    constraints = [pairwise_distances[i, :] / distance_factors[i, :] / rotor_diameter[k]
+                   >= (is_optimal[k, i] + cp.atoms.affine.sum.sum(is_optimal, axis=0) - 1)
+                   for k in range(num_models) for i in range(num_locations)]
+
+    constraints += [cp.atoms.affine.sum.sum(is_optimal, axis=0) <= 1]
+
+    # FIXME this is wrong, shouldn't be scaled by rotor_diameter but by capacity
+    pwr = (np.array([1., 0., 0.])[np.newaxis].T * power_generation[np.newaxis])
+
+    obj = cp.Maximize(cp.atoms.affine.sum.sum(cp.multiply(is_optimal, pwr)))
+    return constraints, obj, is_optimal
 
 
 def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
@@ -65,11 +135,8 @@ def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
 
     pairwise_distances = geolocation_distances(locations)
 
-    constraints, obj, is_optimal_location = _constraints_obj_func_single_model(turbines,
-                                                                               min_distance,
-                                                                               num_locations,
-                                                                               pairwise_distances,
-                                                                               power_generation)
+    constraints, obj, is_optimal_location = _constraints_obj_func_multiple_models(
+        turbines, min_distance, num_locations, pairwise_distances, power_generation)
 
     problem = cp.Problem(obj, constraints)
 
@@ -79,7 +146,8 @@ def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
         raise RuntimeError("Optimization problem could not be"
                            f"solved optimally: {problem.status}")
 
-    return is_optimal_location.value, problem
+    # FIXME this sum(axis=0) just for backward compatibility to check unittests
+    return is_optimal_location.value.sum(axis=0), problem
 
 
 def calc_optimal_locations(power_generation, rotor_diameter_m, distance_factor=3.5):
