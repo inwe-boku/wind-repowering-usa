@@ -22,7 +22,7 @@ def calc_optimal_locations_worker(params):
 
     optimal_locations = calc_optimal_locations(
         power_generation=power_generation,
-        rotor_diameter_m=turbine_model.rotor_diameter_m,
+        turbine_models=[turbine_model],
         distance_factor=distance_factor
     )
 
