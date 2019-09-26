@@ -10,7 +10,7 @@ from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.util import turbine_locations
 
 
-def _constraints_obj_func_single_model(min_distance, num_locations,
+def _constraints_obj_func_single_model(turbines, min_distance, num_locations,
                                        pairwise_distances, power_generation):
     # for each location, if True a new turbine should be built, otherwise only decommission old one
     is_optimal_location = cp.Variable(num_locations, boolean=True)
@@ -30,7 +30,7 @@ def _constraints_obj_func_single_model(min_distance, num_locations,
     return constraints, obj, is_optimal_location
 
 
-def calc_optimal_locations_cluster(locations, min_distance, power_generation):
+def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
     """For a set of locations, this will calculate an optimal subset of locations where turbines
     are to be placed, such that the power generation is maximized and a distance threshold is not
     violated:
@@ -42,8 +42,8 @@ def calc_optimal_locations_cluster(locations, min_distance, power_generation):
 
     Parameters
     ----------
-    locations : np.ndarray
-        with shape (N, 2) - in lat/long
+    turbines : xr.DataSet
+        as returned by load_turbines(), but intended to be a subset
     min_distance : float
         in km
     power_generation : np.ndarray
@@ -56,6 +56,7 @@ def calc_optimal_locations_cluster(locations, min_distance, power_generation):
         1 = turbine should be built, 0 = no turbine should be here
 
     """
+    locations = turbine_locations(turbines)
     num_locations = locations.shape[0]
 
     assert len(locations.shape) == 2
@@ -64,7 +65,8 @@ def calc_optimal_locations_cluster(locations, min_distance, power_generation):
 
     pairwise_distances = geolocation_distances(locations)
 
-    constraints, obj, is_optimal_location = _constraints_obj_func_single_model(min_distance,
+    constraints, obj, is_optimal_location = _constraints_obj_func_single_model(turbines,
+                                                                               min_distance,
                                                                                num_locations,
                                                                                pairwise_distances,
                                                                                power_generation)
@@ -115,7 +117,7 @@ def calc_optimal_locations(power_generation, rotor_diameter_m, distance_factor=3
         logging.info(f"Optimizing cluster {cluster}...")
         locations_in_cluster = cluster == cluster_per_location
         is_optimal_location_cluster, problem = calc_optimal_locations_cluster(
-            locations=locations[locations_in_cluster, :],
+            turbines=turbines.sel(turbines=locations_in_cluster),
             min_distance=min_distance,
             power_generation=power_generation[locations_in_cluster].values
         )

@@ -5,10 +5,23 @@ from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.optimization import calc_optimal_locations_cluster, calc_optimal_locations
 
 
+def locations_to_turbines(locations):
+    locations = np.array(locations)
+    turbines = xr.Dataset({
+            'xlong': ('turbines', locations.T[1]),
+            'ylat': ('turbines', locations.T[0]),
+        },
+        coords={'turbines': np.arange(len(locations))}
+    )
+    return turbines
+
+
 def test_find_optimal_locations_cluster_trivial():
     locations = [[0, 0]]
+    turbines = locations_to_turbines(locations)
+
     is_optimal_location, problem = calc_optimal_locations_cluster(
-        locations=np.array(locations),
+        turbines=turbines,
         min_distance=10.,
         power_generation=np.array([42.])
     )
@@ -23,11 +36,13 @@ def test_find_optimal_locations_cluster():
         [49.2323, 112.223],
         [48.2423, 110.233],
     ]
+    turbines = locations_to_turbines(locations)
+
     # 0 <--> 1: 184.05km
     # 1 <--> 2: 182.78km
     # 0 <--> 2: 1.34km
     is_optimal_location, problem = calc_optimal_locations_cluster(
-        locations=np.array(locations),
+        turbines=turbines,
         min_distance=5.,
         power_generation=np.array([42., 23., 41.])
     )
