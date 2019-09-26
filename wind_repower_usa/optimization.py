@@ -13,26 +13,6 @@ from wind_repower_usa.wind_direction import calc_directions
 from wind_repower_usa.turbine_models import new_turbine_models
 
 
-def _constraints_obj_func_single_model(turbines, min_distance, num_locations,
-                                       pairwise_distances, power_generation):
-    # for each location, if True a new turbine should be built, otherwise only decommission old one
-    is_optimal_location = cp.Variable(num_locations, boolean=True)
-
-    # TODO not sure if it is faster to have this vectorized with a huge matrix or not vectorized
-    #  with a smaller list
-    lhs = pairwise_distances / min_distance
-    upper_triangle = ~np.tri(*pairwise_distances.shape, dtype=np.bool)
-    # note that this is equivalent to lhs[i,j] >= is_optimal_location[i] * is_optimal_location[j]
-    constraints = [lhs[i, j] >= (is_optimal_location[i] + is_optimal_location[j] - 1)
-                   for i, j in zip(*np.where((pairwise_distances < min_distance) &
-                                             upper_triangle))]
-    logging.info("Number of locations: %s", num_locations)
-    logging.info("Number of constraints: %s", len(constraints))
-    obj = cp.Maximize(power_generation @ is_optimal_location)
-
-    return constraints, obj, is_optimal_location
-
-
 def _calc_distance_factors(turbines):
     """
 
@@ -61,43 +41,6 @@ def _calc_distance_factors(turbines):
     distance_factors_turbines = distance_factors.interp(direction=directions).values
 
     return distance_factors_turbines
-
-
-def _constraints_obj_func_multiple_models(turbines, min_distance, num_locations,
-                                          pairwise_distances, power_generation):
-    num_models = len(new_turbine_models())
-
-    # for each location, if True a new turbine should be built, otherwise only decommission old one
-    is_optimal = cp.Variable((num_models, num_locations), boolean=True)
-
-    rotor_diameter = np.array([x.rotor_diameter_m for x in new_turbine_models()]) * METER_TO_KM
-
-    # can we build model k at location i? we can if:
-    #  - j is not built (for all j != i)
-    #  - i is not built
-    #  - i is far enough away from j
-    # constraints = pairwise_distances[:, :, np.newaxis] >= (
-    #    rotor_diameter[np.newaxis, np.newaxis, :]
-    #    * distance_factor[:, :, np.newaxis] *
-    #    is_optimal[k, i] + cp.atoms.affine.sum.sum(is_optimal, axis=0)[j] - 1)
-
-    pairwise_distances[np.diag_indices_from(pairwise_distances)] = np.inf
-
-    distance_factors = _calc_distance_factors(turbines)
-    # FIXME this just for backward compatibility to check unittests
-    distance_factors[:] = min_distance / rotor_diameter[0]
-
-    constraints = [pairwise_distances[i, :] / distance_factors[i, :] / rotor_diameter[k]
-                   >= (is_optimal[k, i] + cp.atoms.affine.sum.sum(is_optimal, axis=0) - 1)
-                   for k in range(num_models) for i in range(num_locations)]
-
-    constraints += [cp.atoms.affine.sum.sum(is_optimal, axis=0) <= 1]
-
-    # FIXME this is wrong, shouldn't be scaled by rotor_diameter but by capacity
-    pwr = (np.array([1., 0., 0.])[np.newaxis].T * power_generation[np.newaxis])
-
-    obj = cp.Maximize(cp.atoms.affine.sum.sum(cp.multiply(is_optimal, pwr)))
-    return constraints, obj, is_optimal
 
 
 def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
@@ -135,8 +78,39 @@ def calc_optimal_locations_cluster(turbines, min_distance, power_generation):
 
     pairwise_distances = geolocation_distances(locations)
 
-    constraints, obj, is_optimal_location = _constraints_obj_func_multiple_models(
-        turbines, min_distance, num_locations, pairwise_distances, power_generation)
+    num_models = len(new_turbine_models())
+
+    # for each location, if True a new turbine should be built, otherwise only decommission old one
+    is_optimal_location = cp.Variable((num_models, num_locations), boolean=True)
+
+    rotor_diameter = np.array([x.rotor_diameter_m for x in new_turbine_models()]) * METER_TO_KM
+
+    # can we build model k at location i? we can if:
+    #  - j is not built (for all j != i)
+    #  - i is not built
+    #  - i is far enough away from j
+    # constraints = pairwise_distances[:, :, np.newaxis] >= (
+    #    rotor_diameter[np.newaxis, np.newaxis, :]
+    #    * distance_factor[:, :, np.newaxis] *
+    #    is_optimal_location[k, i] + cp.atoms.affine.sum.sum(is_optimal_location, axis=0)[j] - 1)
+
+    pairwise_distances[np.diag_indices_from(pairwise_distances)] = np.inf
+
+    distance_factors = _calc_distance_factors(turbines)
+    # FIXME this just for backward compatibility to check unittests
+    distance_factors[:] = min_distance / rotor_diameter[0]
+
+    constraints = [pairwise_distances[i, :] / distance_factors[i, :] / rotor_diameter[k]
+                   >= (is_optimal_location[k, i]
+                       + cp.atoms.affine.sum.sum(is_optimal_location, axis=0) - 1)
+                   for k in range(num_models) for i in range(num_locations)]
+
+    constraints += [cp.atoms.affine.sum.sum(is_optimal_location, axis=0) <= 1]
+
+    # FIXME this is wrong, shouldn't be scaled by rotor_diameter but by capacity
+    pwr = (np.array([1., 0., 0.])[np.newaxis].T * power_generation[np.newaxis])
+
+    obj = cp.Maximize(cp.atoms.affine.sum.sum(cp.multiply(is_optimal_location, pwr)))
 
     problem = cp.Problem(obj, constraints)
 
