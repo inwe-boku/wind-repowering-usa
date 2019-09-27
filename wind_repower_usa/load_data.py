@@ -65,7 +65,7 @@ def load_wind_velocity(year, month):
               'wind_velocity_usa_{y}-{m:02d}.nc'.format(m=m, y=y)
               for m in month for y in year]
 
-    # FIXME how to calculate this better?
+    # TODO how to calculate this better? Could be performance or RAM issue!
     chunk_size_total = 1e6
     time_chunk_size = int(chunk_size_total / NUM_TURBINES)
 
@@ -97,6 +97,7 @@ def load_wind_speed(years, months):
     except TypeError:
         years = [years]
 
+
     try:
         iter(months)
     except TypeError:
@@ -106,7 +107,7 @@ def load_wind_speed(years, months):
               'wind_speed_usa_era5-{}-{:02d}.nc'.format(year, month)
               for year in years for month in months]
 
-    # FIXME how to calculate this better?
+    # TODO how to calculate this better? Could be performance or RAM issue!
     chunk_size_total = 1e6
     time_chunk_size = int(chunk_size_total / NUM_TURBINES)
 
