@@ -195,7 +195,8 @@ def plot_optimized_cluster(locations, optimal_locations, turbine):
 
     cluster = 2924
     idcs = optimal_locations.cluster_per_location == cluster
-    is_optimal_location = optimal_locations.is_optimal_location.astype(np.bool)
+    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
+    is_optimal_location = is_optimal_location.astype(np.bool)
     locations_old_ylat, locations_old_xlon = locations[idcs].T
     locations_new_ylat, locations_new_xlon = locations[idcs & is_optimal_location].T
 

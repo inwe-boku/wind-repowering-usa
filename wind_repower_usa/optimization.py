@@ -66,8 +66,10 @@ def calc_optimal_locations_cluster(turbines, turbine_models, min_distance, power
 
     Returns
     -------
-    is_optimal_location : np.array of length N
-        1 = turbine should be built, 0 = no turbine should be here
+    is_optimal_location : np.array of length K,N
+        is_optimal_location[k,i] for a location i and model k:
+        1 == model k should be built, 0 == model k is not optimal,
+        sum(axis=0)[i] == 0 means nothing is to be built at location i
 
     """
     locations = turbine_locations(turbines)
@@ -135,9 +137,9 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
 
     Returns
     -------
-    optimal_locations : xr.Dataset, dims: turbine_model, turbines (length N)
-        variable 'is_optimal_location': 1 = turbine should be built, 0 = no turbine should be here
-        variable 'cluster_per_location': see ``calc_location_clusters()``
+    optimal_locations : xr.Dataset
+        variable 'is_optimal_location': 1 if model is optimal (dims: turbine_model, turbines)
+        variable 'cluster_per_location': see ``calc_location_clusters()`` (dims: turbines)
 
     """
     # TODO actually only min_distance has to be removed, then it should work! add also unittests!
@@ -183,8 +185,8 @@ def calc_repower_potential(power_generation_new, power_generation_old, optimal_l
     Parameters
     ----------
     power_generation_new : xr.DataArray of length N
-        for each turbine (N turbines) an expected power generation, scaling does not matter,
-        so it does not matter if it is in GW or GWh/yr or 5*GWh/yr (averaging over 5 years)
+        for each turbine (N turbines) an expected power generation
+        might support dim=turbine_model in future, but not yet
     power_generation_old : xr.DataArray of length N
         as ``power_generation_new`` but for the currently installed turbines, i.e. with a power
         curve which is currently used and with capacity scaling
@@ -199,7 +201,7 @@ def calc_repower_potential(power_generation_new, power_generation_old, optimal_l
     """
     # TODO this function could probably run faster (25s ATM) with a bit more sophisticated code
 
-    is_optimal_location = optimal_locations.is_optimal_location
+    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
     cluster_per_location = optimal_locations.cluster_per_location
 
     # can be negative if distances between locations are very close and not many turbines fit in

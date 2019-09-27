@@ -20,6 +20,10 @@ def calc_optimal_locations_worker(params):
         INTERIM_DIR / 'simulated_energy_per_location' /
         f'simulated_energy_{turbine_model.file_name}_gwh.nc')
 
+    # TODO this could be already in the *.nc file on generation
+    power_generation = power_generation.expand_dims(dim='turbine_model')
+    power_generation = power_generation.assign_coords(turbine_model=[turbine_model.file_name])
+
     optimal_locations = calc_optimal_locations(
         power_generation=power_generation,
         turbine_models=[turbine_model],
