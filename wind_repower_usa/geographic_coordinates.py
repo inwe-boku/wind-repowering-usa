@@ -120,7 +120,7 @@ def calc_location_clusters(locations, min_distance_km=0.5):
     ----------
     locations : np.ndarray
         with shape (N, 2) - in lat/long
-    min_distance : float
+    min_distance_km : float
 
     Returns
     -------

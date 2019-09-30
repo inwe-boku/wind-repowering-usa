@@ -38,7 +38,6 @@ def test_repowering_potential():
 
 
 def test_repowering_increases_output():
-    # not impossible but very unexpected result
     # TODO for all models/factors?
     turbine_model_new = e138ep3
     turbine_model_old = ge15_77
@@ -48,6 +47,7 @@ def test_repowering_increases_output():
                                                               capacity_scaling=True)
     optimal_locations = load_optimal_locations(turbine_model=e138ep3, distance_factor=4)
     is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
+    # it is not not impossible that this fails, but would be a very unexpected result
     assert np.sum(is_optimal_location * power_generation_new) > np.sum(power_generation_old)
 
 

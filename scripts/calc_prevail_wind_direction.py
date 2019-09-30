@@ -15,8 +15,7 @@ wind_rose, prevail_wind_direction, directivity = calc_wind_rose(turbines,
                                                                 directivity_width=15)
 
 
-# FIXME should have some parameters in file name, right?
-
+# TODO should have the parameters in file name or better not?
 prevail_wind_direction.to_netcdf(INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
 wind_rose.to_netcdf(INTERIM_DIR / 'wind-direction' / 'wind_rose.nc')
 directivity.to_netcdf(INTERIM_DIR / 'wind-direction' / 'directivity.nc')
