@@ -41,17 +41,21 @@ calc_simulated_energy_timeseries:
 calc_simulated_energy_per_location:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_simulated_energy_per_location.py
 
-calc_optimal_locations:
-	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_optimal_locations.py
-
-calc_repower_potential:
-	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_repower_potential.py
-
+# TODO this is kind of obsolete, remove also figure?
 calc_min_distances:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_min_distances.py
 
 calc_prevail_wind_direction:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_prevail_wind_direction.py
+
+calc_dist_in_direction:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_dist_in_direction.py
+
+calc_optimal_locations:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_optimal_locations.py
+
+calc_repower_potential:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_repower_potential.py
 
 generate_figures:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/generate_figures.py
