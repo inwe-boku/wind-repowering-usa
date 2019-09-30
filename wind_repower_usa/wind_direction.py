@@ -257,6 +257,9 @@ def calc_dist_in_direction(cluster_per_location, prevail_wind_direction, turbine
     #  how about using dask.bag.foldby? would it help to use dask.delayed to speed up the inner
     #  loop and then combine results sequential?
     for ((idx_turbine, turbines_cluster), (idx_prevail, prevail_cluster)) in iterator:
+        if idx_turbine == -1:  # single turbine per cluster
+            continue
+
         d = calc_dist_in_direction_cluster(
             turbines_cluster,
             prevail_wind_direction=prevail_cluster,
