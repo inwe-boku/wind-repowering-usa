@@ -161,9 +161,11 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
     cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations,
                                                                            min_distance_km)
 
+    # FIXME for outliers clusters==-1 use (only) largest turbine!
     is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
 
-    # clusters[0] should be cluster -1, i.e. outliers which can be always True
+    # clusters[0] should be cluster -1, i.e. outliers which are always optimal for largest turbine
+    assert clusters[0] == -1
 
     # TODO this should be replaced by looping over groupby() --> speedup by a couple of minutes
     for cluster in clusters[1:]:
@@ -179,6 +181,7 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
 
         is_optimal_location[:, locations_in_cluster] = is_optimal_location_cluster
 
+    # FIXME turbine coords missing! This is tragic because one turbine is removed!
     optimal_locations = xr.Dataset({'is_optimal_location': (('turbine_model', 'turbines'),
                                                             is_optimal_location),
                                     'cluster_per_location': ('turbines', cluster_per_location)})
