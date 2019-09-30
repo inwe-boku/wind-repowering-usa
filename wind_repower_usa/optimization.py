@@ -4,7 +4,6 @@ import numpy as np
 import cvxpy as cp
 import xarray as xr
 
-from wind_repower_usa.config import INTERIM_DIR
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import geolocation_distances, calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
@@ -12,37 +11,16 @@ from wind_repower_usa.util import turbine_locations
 from wind_repower_usa.wind_direction import calc_directions
 
 
-def _calc_distance_factors(turbines):
+def _calc_pairwise_df(turbines, distance_factors, prevail_wind_direction):
+    """`pairwise_df[i, j]` is the distance factor allowed by turbine `i` in the direction of
+    turbine `j`.
     """
-
-    Returns
-    -------
-
-    """
-    distance_factors_all_turbines = xr.open_dataarray(INTERIM_DIR / 'wind-direction' /
-                                                      'distance_factors.nc')
-
-    prevail_wind_direction = xr.open_dataarray(
-        INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
-
-    distance_factors = distance_factors_all_turbines.quantile(0.05, dim='turbines')
-
-    # for interpolation we need distance factors at least in the interval [-pi, pi], so add here
-    # one data point at the beginning and the end by wrapping around (angles are 2*pi periodic)
-    end = distance_factors.sel(direction=np.pi, method='nearest', tolerance=0.2)
-    end['direction'] -= 2*np.pi
-    begin = distance_factors.sel(direction=-np.pi, method='nearest', tolerance=0.2)
-    begin['direction'] += 2*np.pi
-    distance_factors = xr.concat((begin, distance_factors, end), dim='direction')
-
     directions = calc_directions(turbines, prevail_wind_direction).fillna(0.)
-
-    distance_factors_turbines = distance_factors.interp(direction=directions).values
-
-    return distance_factors_turbines
+    return distance_factors.interp(direction=directions).values
 
 
-def calc_optimal_locations_cluster(turbines, turbine_models, min_distance, power_generation):
+def calc_optimal_locations_cluster(turbines, turbine_models, distance_factors,
+                                   prevail_wind_direction, power_generation):
     """For a set of locations, this will calculate an optimal subset of locations where turbines
     are to be placed, such that the power generation is maximized and a distance threshold is not
     violated:
@@ -55,11 +33,13 @@ def calc_optimal_locations_cluster(turbines, turbine_models, min_distance, power
     Parameters
     ----------
     turbines : xr.DataSet
-        as returned by load_turbines(), but intended to be a subset
+        as returned by load_turbines(), but intended to be a subset due to memory use O(N^2)
     turbine_models : list of turbine_models.Turbine
         used for rotor diameter
-    min_distance : float
-        in km
+    distance_factors : xr.DataArray (dim: direction)
+        distance factor per direction relative to prevailing wind direction, will be expanded
+    prevail_wind_direction : xr.DataArray (dim: turbines)
+        prevailing wind direction for each turbine
     power_generation : xr.DataArray, dims: turbine_model, turbines
         for each turbine (N turbines) an expected power generation, scaling does not matter,
         so it does not matter if it is in GW or GWh/yr or 5*GWh/yr (averaging over 5 years)
@@ -90,16 +70,14 @@ def calc_optimal_locations_cluster(turbines, turbine_models, min_distance, power
 
     pairwise_distances[np.diag_indices_from(pairwise_distances)] = np.inf
 
-    distance_factors = _calc_distance_factors(turbines)
-    # FIXME this just for backward compatibility to check unittests
-    distance_factors[:] = min_distance / rotor_diameter_km[0]
+    pairwise_df = _calc_pairwise_df(turbines, distance_factors, prevail_wind_direction)
 
     # for a location i, a location j with j != i and a turbine model k at least one of the
     # following must hold:
     #  - k is not built at i    <==> right-hand-side of inequality equals 0 or -1
     #  - nothing is built at j  <==> right-hand-side of inequality equals 0 or -1
     #  - i is far enough away from j for all j != i
-    constraints = [pairwise_distances[i, :] / distance_factors[i, :] / rotor_diameter_km[k]
+    constraints = [pairwise_distances[i, :] / pairwise_df[i, :] / rotor_diameter_km[k]
                    >= (is_optimal_location[k, i]
                        + cp.atoms.affine.sum.sum(is_optimal_location, axis=0) - 1)
                    for k in range(num_models) for i in range(num_locations)]
@@ -120,20 +98,40 @@ def calc_optimal_locations_cluster(turbines, turbine_models, min_distance, power
     return is_optimal_location.value, problem
 
 
-def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5):
-    """
+def _extend_distance_factors(distance_factors):
+    # for interpolation we need distance factors at least in the interval [-pi, pi], so add here
+    # one data point at the beginning and the end by wrapping around (angles are 2*pi periodic)
+    end = distance_factors.sel(direction=np.pi, method='nearest', tolerance=0.2)
+    end['direction'] -= 2*np.pi
+    begin = distance_factors.sel(direction=-np.pi, method='nearest', tolerance=0.2)
+    begin['direction'] += 2*np.pi
+    distance_factors = xr.concat((begin, distance_factors, end), dim='direction')
+    return distance_factors
+
+
+def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5,
+                           distance_factors=None, prevail_wind_direction=None):
+    """For each (old) turbine location (all turbines from `load_turbines()`), pick at maximum one
+    model from `turbine_models` to be installed such that total power_generation is maximized and
+    distance thresholds are not violated.
 
     Parameters
     ----------
     power_generation : xr.DataArray, dims: turbine_model, turbines
-        for each turbine (N turbines) an expected power generation, scaling does not matter,
-        so it does not matter if it is in GW or GWh/yr or 5*GWh/yr (averaging over 5 years)
+        for each turbine (N turbines) and model an expected power generation, scaling does not
+        matter, so it does not matter if it is in GW or GWh/yr or 5*GWh/yr (averaging over 5 years)
     turbine_models : list of turbine_models.Turbine
         will try to find an optimal configuration of these turbine models (mixed also within one
-        cluster), this is mostly used for rotor diameter, list needs to match with dimension
-        `turbine_model` in parameter `power_generation`
+        cluster), this is mostly used for rotor diameter, order of list needs to match with
+        dimension `turbine_model` in parameter `power_generation`
     distance_factor : float
-
+        fixed distance factor, provide either this or `dstance_factors`
+    distance_factors : xr.DataArray (dim: direction)
+        distance factor per direction relative to prevailing wind direction, will be expanded by
+        pre-pending the last element in the beginning (2-pi periodic) and the first at the end
+        this should not contain dim=turbines!
+    prevail_wind_direction : xr.DataArray (dim: turbines)
+        prevailing wind direction for each turbine
 
     Returns
     -------
@@ -142,15 +140,26 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
         variable 'cluster_per_location': see ``calc_location_clusters()`` (dims: turbines)
 
     """
-    # TODO actually only min_distance has to be removed, then it should work! add also unittests!
-    assert len(turbine_models) == 1, "multiple turbine models not yet supported"
-    rotor_diameter_m = turbine_models[0].rotor_diameter_m
-    min_distance = distance_factor * rotor_diameter_m * METER_TO_KM
+    assert len(turbine_models) == 1, "multiple turbine models not yet supported"  # still valid?
+    assert (distance_factors is None) ^ (distance_factor is None), \
+        "provide either distance_factor or distance_factors"
+
+    if distance_factor is not None:
+        eps = 0.1   # safety margin for interpolation, probably paranoia
+        distance_factors = xr.DataArray([distance_factor, distance_factor],
+                                        dims='direction',
+                                        coords={'direction': [-np.pi - eps, np.pi + eps]})
+    else:
+        distance_factors = _extend_distance_factors(distance_factors)
+
+    max_rotor_diameter_m = max(tm.rotor_diameter_m for tm in turbine_models)
+    min_distance_km = distance_factors.max() * max_rotor_diameter_m * METER_TO_KM
 
     turbines = load_turbines()
     locations = turbine_locations(turbines)
 
-    cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations, min_distance)
+    cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations,
+                                                                           min_distance_km)
 
     is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
 
@@ -163,7 +172,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
         is_optimal_location_cluster, problem = calc_optimal_locations_cluster(
             turbines=turbines.sel(turbines=locations_in_cluster),
             turbine_models=turbine_models,
-            min_distance=min_distance,        # FIXME goes away!
+            distance_factors=distance_factors,
+            prevail_wind_direction=prevail_wind_direction,
             power_generation=power_generation.sel(turbines=locations_in_cluster)
         )
 

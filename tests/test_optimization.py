@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 
+from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.optimization import calc_optimal_locations_cluster, calc_optimal_locations
 from wind_repower_usa.turbine_models import e126, Turbine
@@ -23,15 +24,25 @@ def test_find_optimal_locations_cluster_trivial():
 
     power_generation = xr.DataArray([[42.]], dims=('turbine_model', 'turbines'))
 
+    # assuming a min_distance_km == 10.
     is_optimal_location, problem = calc_optimal_locations_cluster(
         turbines=turbines,
         turbine_models=[e126],
-        min_distance=10.,
+        distance_factors=_const_distance_factors(10. / (e126.rotor_diameter_m * METER_TO_KM)),
+        prevail_wind_direction=xr.DataArray([0.] * 1, dims='turbines'),
         power_generation=power_generation
     )
     assert problem.status == 'optimal'
     assert problem.solution.opt_val == 42.
     np.testing.assert_equal(is_optimal_location, [[1.]])
+
+
+def _const_distance_factors(distance_factor):
+    eps = 0.1  # safety margin for interpolation, probably paranoia
+    distance_factors = xr.DataArray([distance_factor, distance_factor],
+                                    dims='direction',
+                                    coords={'direction': [-np.pi - eps, np.pi + eps]})
+    return distance_factors
 
 
 def test_find_optimal_locations_cluster():
@@ -47,10 +58,13 @@ def test_find_optimal_locations_cluster():
     # 0 <--> 1: 184.05km
     # 1 <--> 2: 182.78km
     # 0 <--> 2: 1.34km
+
+    # assuming a min_distance_km == 5.
     is_optimal_location, problem = calc_optimal_locations_cluster(
         turbines=turbines,
         turbine_models=[e126],
-        min_distance=5.,
+        distance_factors=_const_distance_factors(5. / (e126.rotor_diameter_m * METER_TO_KM)),
+        prevail_wind_direction=xr.DataArray([0.] * 3, dims='turbines'),
         power_generation=power_generation,
     )
     assert problem.status == 'optimal'
