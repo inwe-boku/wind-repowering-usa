@@ -6,11 +6,13 @@ from wind_repower_usa.calculations import calc_mean_wind_speed
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR
 from wind_repower_usa.load_data import load_turbines, load_repower_potential, \
     load_optimal_locations, load_generated_energy_gwh
+from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.turbine_models import new_turbine_models, e138ep3
 from wind_repower_usa.util import turbine_locations
 from wind_repower_usa.visualize import plot_repower_potential, plot_mean_wind_speed_and_turbines, \
     plot_optimized_cluster, plot_simulated_generated_energy, plot_history_turbines, \
     plot_min_distances, plot_power_curves
+
 
 # https://matplotlib.org/users/usetex.html
 # https://matplotlib.org/gallery/userdemo/pgf_texsystem.html
@@ -93,4 +95,5 @@ def save_figures():
 
 
 if __name__ == '__main__':
+    setup_logging()
     save_figures()

@@ -1,7 +1,10 @@
 from wind_repower_usa.config import INTERIM_DIR, MONTHS
 from wind_repower_usa.load_data import load_turbines, load_wind_velocity, load_wind_speed
 from wind_repower_usa.wind_direction import calc_wind_rose
+from wind_repower_usa.logging_config import setup_logging
 
+
+setup_logging()
 
 turbines = load_turbines()
 wind_velocity = load_wind_velocity(year=2010, month=MONTHS)

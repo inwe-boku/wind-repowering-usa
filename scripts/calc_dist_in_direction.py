@@ -4,8 +4,12 @@ from wind_repower_usa.config import INTERIM_DIR
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
+from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.util import turbine_locations
 from wind_repower_usa.wind_direction import calc_dist_in_direction, calc_distance_factors
+
+
+setup_logging()
 
 turbines = load_turbines()
 locations = turbine_locations(turbines)
