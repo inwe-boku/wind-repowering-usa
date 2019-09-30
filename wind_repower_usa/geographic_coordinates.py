@@ -116,6 +116,8 @@ def calc_location_clusters(locations, min_distance_km=0.5):
     """Calculate a partitioning of locations given in lang/long into clusters using the DBSCAN
     algorithm.
 
+    Runtime: about 10-15 seconds for all turbines.
+
     Parameters
     ----------
     locations : np.ndarray

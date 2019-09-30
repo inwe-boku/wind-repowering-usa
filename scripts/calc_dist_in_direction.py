@@ -1,3 +1,5 @@
+import logging
+
 import xarray as xr
 
 from wind_repower_usa.config import INTERIM_DIR
@@ -26,9 +28,16 @@ min_distance_km = distance_factor * max_rotor_diameter * METER_TO_KM
 # require too much RAM, so it's better to change this manually if necessary
 assert turbines.t_rd.max() == max_rotor_diameter, "max rotor diameter changed in turbine database"
 
+logging.info('Cluster turbine locations...')
 cluster_per_location, _, _ = calc_location_clusters(locations, min_distance_km=min_distance_km)
 
+# TODO this could be moved to calc_location_clusters()
+cluster_per_location = xr.DataArray(cluster_per_location, dims='turbines',
+                                    coords={'turbines': turbines.turbines},
+                                    name='cluster_per_location ')
+
 # absolute directions (mathematical orientation, 0rad = east)
+logging.info('Calculating distances (absolute direction)...')
 distances = calc_dist_in_direction(cluster_per_location,
                                    0 * prevail_wind_direction,
                                    bin_size_deg=15)
@@ -36,6 +45,7 @@ distances.to_netcdf(INTERIM_DIR / 'distances_in_direction' / 'distances-absolute
 
 
 # relative to prevailing wind direction (0deg = prevailing wind direction)
+logging.info('Calculating distances (direction relative to prevailing wind)...')
 distances = calc_dist_in_direction(cluster_per_location,
                                    prevail_wind_direction,
                                    bin_size_deg=15)
@@ -45,3 +55,5 @@ distance_factors = calc_distance_factors(turbines, distances).quantile(0.05, dim
 distance_factors.to_netcdf(INTERIM_DIR / 'distances_in_direction' / 'distance_factors.nc')
 
 # TODO should have the parameters in file name or better not? or at least in attr of netcdf?
+
+logging.info('Done!')
