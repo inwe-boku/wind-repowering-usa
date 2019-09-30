@@ -152,7 +152,7 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
 
     cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations, min_distance)
 
-    is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)))
+    is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
 
     # clusters[0] should be cluster -1, i.e. outliers which can be always True
 
