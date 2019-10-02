@@ -121,9 +121,10 @@ def load_wind_speed(years, months):
 
 
 def load_optimal_locations(turbine_model, distance_factor):
+    df_filename = '' if distance_factor is None else f'_{distance_factor}'
     optimal_locations = xr.open_dataset(
         INTERIM_DIR / 'optimal_locations' /
-        f'optimal_locations_{turbine_model.file_name}_{distance_factor}.nc')
+        f'optimal_locations_{turbine_model.file_name}{df_filename }.nc')
     return optimal_locations
 
 
@@ -137,7 +138,14 @@ def load_simulated_energy_per_location(turbine_model, capacity_scaling=False):
 
 def load_repower_potential(turbine_model_new, distance_factor):
     turbine_model_old = ge15_77
+    df_filename = '' if distance_factor is None else f'_{distance_factor}'
     fname = (INTERIM_DIR / 'repower_potential' /
              f'repower_potential_{turbine_model_old.file_name}_'
-             f'{turbine_model_new.file_name}_{distance_factor}.nc')
+             f'{turbine_model_new.file_name}{df_filename }.nc')
+
     return xr.open_dataset(fname)
+
+
+def load_distances(relative=True):
+    relabs = 'relative' if relative else 'absolute'
+    return xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' / f'distances-{relabs}.nc')
