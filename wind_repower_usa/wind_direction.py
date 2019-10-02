@@ -114,6 +114,13 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     directivity = xr.DataArray(directivity, dims='turbines',
                                coords={'turbines': turbines.turbines})
 
+    wind_rose.attrs['bins'] = bins
+    wind_rose.attrs['directivity_width'] = directivity_width
+    prevail_wind_direction_xr['bins'] = bins
+    prevail_wind_direction_xr['directivity_width'] = directivity_width
+    directivity['bins'] = bins
+    directivity['directivity_width'] = directivity_width
+
     return wind_rose, prevail_wind_direction_xr, directivity
 
 
