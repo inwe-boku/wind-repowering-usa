@@ -299,6 +299,6 @@ def calc_distance_factors(turbines, distances):
 
     """
     distance_factors = distances * KM_TO_METER / turbines.t_rd
-    distance_factors = distance_factors.where(distance_factors < np.inf)
+    distance_factors = distance_factors.where(~np.isnan(distance_factors), np.inf)
 
     return distance_factors
