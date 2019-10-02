@@ -40,7 +40,10 @@ def calc_simulated_energy(wind_speed, turbines, power_curve=None, sum_along='tur
         a function mapping wind speed to power
     sum_along : str
         sum along turbines or time
-    capacity_scaling
+    capacity_scaling : bool
+        scale power curve to capacity for each turbine (if available)
+    only_built_turbines : bool
+        calculate energy only for time stamps where commission year is older
 
     Returns
     -------
