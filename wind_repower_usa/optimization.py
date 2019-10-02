@@ -109,8 +109,8 @@ def _extend_distance_factors(distance_factors):
     return distance_factors
 
 
-def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5,
-                           distance_factors=None, prevail_wind_direction=None):
+def calc_optimal_locations(power_generation, turbine_models, distance_factor=None,
+                           distance_factors=None, prevail_wind_direction=None, turbines=None):
     """For each (old) turbine location (all turbines from `load_turbines()`), pick at maximum one
     model from `turbine_models` to be installed such that total power_generation is maximized and
     distance thresholds are not violated.
@@ -132,6 +132,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
         this should not contain dim=turbines!
     prevail_wind_direction : xr.DataArray (dim: turbines)
         prevailing wind direction for each turbine
+    turbines : xr.DataSet
+        as returned by load_turbines()
 
     Returns
     -------
@@ -155,7 +157,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=3.5
     max_rotor_diameter_m = max(tm.rotor_diameter_m for tm in turbine_models)
     min_distance_km = distance_factors.max() * max_rotor_diameter_m * METER_TO_KM
 
-    turbines = load_turbines()
+    if turbines is None:
+        turbines = load_turbines()
     locations = turbine_locations(turbines)
 
     cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations,
