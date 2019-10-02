@@ -24,6 +24,7 @@ def power_curve_ge15_77():
     Hub height: 65 / 80m
 
     https://www.nrel.gov/docs/fy15osti/63684.pdf  page 21
+    https://geosci.uchicago.edu/~moyer/GEOS24705/Readings/GEA14954C15-MW-Broch.pdf
     """
     wind_speeds = np.hstack((np.arange(0, 27, step=1.5), [29., 70]))
     generation_kw = [0., 0., 0., 70., 210., 520., 930., 1280., 1470, 1500.] + [1500.] * 8 + [0., 0.]

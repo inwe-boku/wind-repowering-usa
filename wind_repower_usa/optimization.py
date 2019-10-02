@@ -142,7 +142,9 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
         variable 'cluster_per_location': see ``calc_location_clusters()`` (dims: turbines)
 
     """
+    # TODO to support multiple turbine models, at least the bug for outliers below needs to be fixed
     assert len(turbine_models) == 1, "multiple turbine models not yet supported"  # still valid?
+
     assert (distance_factors is None) ^ (distance_factor is None), \
         "provide either distance_factor or distance_factors"
 
