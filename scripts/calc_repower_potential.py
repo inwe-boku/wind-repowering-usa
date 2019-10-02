@@ -27,17 +27,19 @@ def calc_optimal_locations_worker(params):
 
     repower_potential.attrs['turbine_model_new'] = turbine_model_new.file_name
     repower_potential.attrs['turbine_model_old'] = turbine_model_old.file_name
-    repower_potential.attrs['distance_factor'] = distance_factor
+    repower_potential.attrs['distance_factor'] = str(distance_factor)
+
+    df_filename = '' if distance_factor is None else f'_{distance_factor}'
 
     fname = (INTERIM_DIR / 'repower_potential' /
              f'repower_potential_{turbine_model_old.file_name}_'
-             f'{turbine_model_new.file_name}_{distance_factor}.nc')
+             f'{turbine_model_new.file_name}{df_filename}.nc')
 
     repower_potential.to_netcdf(fname)
 
 
 def main():
-    params = product(new_turbine_models(), DISTANCE_FACTORS)
+    params = product(new_turbine_models(), (None,) + DISTANCE_FACTORS)
 
     with Pool(processes=NUM_PROCESSES) as pool:
         pool.map(calc_optimal_locations_worker, params)
