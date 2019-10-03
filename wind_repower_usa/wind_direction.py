@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import xarray as xr
 from scipy.ndimage import uniform_filter
@@ -52,6 +54,7 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     #  - choose some wind speed samples only
     #  - calculate only once for entire park
 
+    logging.info("Interpolating wind velocity at turbine locations...")
     # interpolation is already done, but only stored as wind speed, u/v components not separately
     wind_velocity_at_turbines = wind_velocity.interp(
         longitude=xr.DataArray(turbines.xlong.values, dims='turbines'),
@@ -63,6 +66,7 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     #  see also Azimuth calculator: https://www.cqsrg.org/tools/GCDistance/
 
     # FIXME compare differences between 100m and 10m
+    logging.info("Calculate wind directions...")
     directions = np.arctan2(wind_velocity_at_turbines.v100,
                             wind_velocity_at_turbines.u100).compute()
 
@@ -79,6 +83,7 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     directivity = []
     prevail_wind_direction = []
 
+    logging.info("Calculate distribution of directions per turbine location...")
     # would be great to use np.histogramdd() instead of this loop but somehow doesn't seem to work
     for turbine_idx in range(directions.values.shape[1]):
         hist = np.histogram(directions.values.T[turbine_idx, :],
