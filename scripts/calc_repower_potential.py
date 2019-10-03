@@ -10,7 +10,7 @@ from wind_repower_usa.optimization import calc_repower_potential
 
 
 def calc_optimal_locations_worker(params):
-    logging.info("Start calculating repower_potentila: %s", params)
+    logging.info("Start calculating repower_potential: %s", params)
     turbine_model_new, distance_factor = params
 
     turbine_model_old = ge15_77
