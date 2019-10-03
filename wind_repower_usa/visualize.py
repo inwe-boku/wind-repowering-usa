@@ -17,7 +17,7 @@ from wind_repower_usa.calculations import calc_bounding_box_usa
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGSIZE
 from wind_repower_usa.load_data import load_generated_energy_gwh, load_turbines
 from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
-from wind_repower_usa.util import turbine_locations
+from wind_repower_usa.util import turbine_locations, edges_to_center
 
 
 def plot_simulated_generated_energy(simulated_energy_gwh):
@@ -335,7 +335,7 @@ def plot_wind_rose(data1, data2=None, percentage=True, args=None, kwargs=None, f
 
     if data2 is None:
         values = data1
-        directions = np.linspace(-np.pi, np.pi, num=len(values))
+        directions = edges_to_center(np.linspace(-np.pi, np.pi, num=len(values) + 1))
     elif isinstance(data2, str):
         raise ValueError(f"invalid type str for data2: {data2}")
     else:
