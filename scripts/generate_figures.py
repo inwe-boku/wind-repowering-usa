@@ -49,6 +49,20 @@ def savefig_repower_potential():
     plt.savefig(FIGURES_DIR / 'repower_potential_num_turbines.pdf', bbox_inches='tight')
 
 
+def savefig_repower_potential_direction():
+    repower_potentials = []
+    for turbine_model_new in new_turbine_models():
+        repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor=None))
+
+    plot_repower_potential(*repower_potentials, variable='power_generation')
+    plt.savefig(FIGURES_DIR / 'repower_potential-direction-dependent_power_generation.pdf',
+                bbox_inches='tight')
+
+    plot_repower_potential(*repower_potentials, variable='num_turbines')
+    plt.savefig(FIGURES_DIR / 'repower_potential-direction-dependent_num_turbines.pdf',
+                bbox_inches='tight')
+
+
 def savefig_mean_wind_speed_and_turbines(turbines):
     wind_speed_mean = calc_mean_wind_speed(years=range(2010, 2019),
                                            sample_size=200)
@@ -88,6 +102,7 @@ def save_figures():
     savefig_history_turbines()
     savefig_power_curves()
     savefig_repower_potential()
+    savefig_repower_potential_direction()
     savefig_mean_wind_speed_and_turbines(turbines)
     savefig_optimized_cluster(turbines)
     savefig_simulated_energy_time_series()

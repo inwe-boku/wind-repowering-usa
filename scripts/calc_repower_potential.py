@@ -27,7 +27,9 @@ def calc_optimal_locations_worker(params):
 
     repower_potential.attrs['turbine_model_new'] = turbine_model_new.file_name
     repower_potential.attrs['turbine_model_old'] = turbine_model_old.file_name
-    repower_potential.attrs['distance_factor'] = str(distance_factor)
+    repower_potential.attrs['distance_factor'] = (distance_factor
+                                                  if distance_factor is not None
+                                                  else 0)
 
     df_filename = '' if distance_factor is None else f'_{distance_factor}'
 

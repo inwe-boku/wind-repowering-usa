@@ -122,8 +122,11 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
     turbine_names = (t.file_name for t in new_turbine_models())
     turbine_color = dict(zip(turbine_names, colors))
 
-    styles = ('-', '--', 'dotted', '-.')
-    distance_factor_style = dict(zip(DISTANCE_FACTORS, styles))
+    styles = ('--', '--', 'dotted', '-.', '-')
+    distance_factor_style = dict(zip(DISTANCE_FACTORS + (0,), styles))
+    distance_factor_style = {k: v for k, v in distance_factor_style.items()}
+
+    distance_factors = []
 
     for repower_potential in repower_potentials:
         num_new_turbines = repower_potential.num_new_turbines
@@ -131,6 +134,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
 
         turbine_model_name = repower_potential.attrs['turbine_model_new']
         distance_factor = repower_potential.attrs['distance_factor']
+        distance_factors.append(distance_factor)
         turbine_model = getattr(turbine_models, turbine_model_name)
         color = turbine_color[turbine_model_name]
 
@@ -147,7 +151,8 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
     legend1 = ax.legend(loc='upper right')
 
     dist_factors = [Line2D([], [], color='black', linestyle=distance_factor_style[df],
-                           label=f"Distance factor {df}") for df in DISTANCE_FACTORS]
+                           label=f"Distance factor {df}") for df in distance_factors if df != 0]
+
     ax.legend(handles=dist_factors, loc='upper left')
     ax.add_artist(legend1)
 
