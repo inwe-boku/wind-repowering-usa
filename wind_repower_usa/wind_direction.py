@@ -8,11 +8,11 @@ from wind_repower_usa.calculations import calc_simulated_energy
 from wind_repower_usa.constants import KM_TO_METER
 from wind_repower_usa.geographic_coordinates import geolocation_distances
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.util import turbine_locations, edges_to_center
+from wind_repower_usa.util import turbine_locations, edges_to_center, choose_samples
 
 
 def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=70,
-                   directivity_width=15):
+                   directivity_width=15, num_samples=1000):
     """Calculate prevailing wind direction for each turbine location in ``turbines``. A wind rose is
     calculated by the amount of energy produced by wind blowing in a certain wind direction using a
     specific power curve. Note that definition of wind rose differs slightly from usual
@@ -32,6 +32,7 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
         bins for histogram of distribution of energy (~wind speed) over direction
     directivity_width : float (in degree)
         see directivity below
+    num_samples : int
 
     Returns
     -------
@@ -53,6 +54,9 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
     # TODO speed up potential of this function:
     #  - choose some wind speed samples only
     #  - calculate only once for entire park
+
+    wind_speed, wind_velocity = choose_samples(wind_speed, wind_velocity,
+                                               num_samples=num_samples, dim='time')
 
     logging.info("Interpolating wind velocity at turbine locations...")
     # interpolation is already done, but only stored as wind speed, u/v components not separately

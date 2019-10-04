@@ -46,3 +46,25 @@ def quantile(a, q, dim=None, **kwargs):
         return higher
     else:
         return (1. - fraction) * lower + fraction * higher
+
+
+def choose_samples(*objs, num_samples, dim):
+    """Pick random samples from xarray objects.
+
+    Parameters
+    ----------
+    objs : xr.DataArray or xr.Dataset
+    num_samples
+    dim
+
+    Returns
+    -------
+
+    """
+    assert np.all(objs[0].sizes[dim] == np.array([obj.sizes[dim] for obj in objs])), \
+        f"objs must have same length in dimension {dim}, " \
+        f"sizes are: {list(obj.sizes[dim] for obj in objs)}"
+
+    np.random.seed(42)
+    idcs = np.random.choice(objs[0].sizes[dim], size=num_samples)
+    return (obj.isel({dim: idcs}) for obj in objs)

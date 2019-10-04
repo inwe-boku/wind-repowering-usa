@@ -8,20 +8,23 @@ from wind_repower_usa.logging_config import setup_logging
 
 setup_logging()
 
-years = range(2010, 2011)
+years = range(2000, 2018)
+num_samples = 8_000
 
-logging.info(f"Calculate prevailing wind direction from years={years}...")
+logging.info(f"Calculate prevailing wind direction from years={years}, "
+             f"num_samples={num_samples}...")
 
 turbines = load_turbines()
 wind_velocity = load_wind_velocity(year=years, month=MONTHS)
-wind_speed = load_wind_speed(years=2010, months=MONTHS)
+wind_speed = load_wind_speed(years=years, months=MONTHS)
 
 wind_rose, prevail_wind_direction, directivity = calc_wind_rose(turbines,
                                                                 wind_speed,
                                                                 wind_velocity,
                                                                 power_curve=None,
                                                                 bins=70,
-                                                                directivity_width=15)
+                                                                directivity_width=15,
+                                                                num_samples=num_samples)
 
 
 # TODO should have the parameters in file name or better not?
