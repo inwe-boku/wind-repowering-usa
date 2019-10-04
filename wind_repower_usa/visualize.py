@@ -138,7 +138,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
         turbine_model = getattr(turbine_models, turbine_model_name)
         color = turbine_color[turbine_model_name]
 
-        label = turbine_model.name if distance_factor == 2 else '_nolegend_'
+        label = turbine_model.name if distance_factor in (2, 0) else '_nolegend_'
 
         y = {
             # FIXME this division should be elsewhere
@@ -148,13 +148,14 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
         ax.plot(num_new_turbines, y[variable], linestyle=distance_factor_style[distance_factor],
                 label=label, color=color)
 
-    legend1 = ax.legend(loc='upper right')
+    legend1 = ax.legend(loc='upper left')
 
     dist_factors = [Line2D([], [], color='black', linestyle=distance_factor_style[df],
                            label=f"Distance factor {df}") for df in distance_factors if df != 0]
 
-    ax.legend(handles=dist_factors, loc='upper left')
-    ax.add_artist(legend1)
+    if dist_factors:
+        ax.legend(handles=dist_factors, loc='upper right')
+        ax.add_artist(legend1)
 
     return plt.gca()
 

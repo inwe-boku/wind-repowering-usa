@@ -1,5 +1,4 @@
 import xarray as xr
-import matplotlib
 import matplotlib.pyplot as plt
 
 from wind_repower_usa.calculations import calc_mean_wind_speed
@@ -16,14 +15,20 @@ from wind_repower_usa.visualize import plot_repower_potential, plot_mean_wind_sp
 
 # https://matplotlib.org/users/usetex.html
 # https://matplotlib.org/gallery/userdemo/pgf_texsystem.html
-plt.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    "pgf.preamble": [
-         r"\usepackage[T1]{fontenc}",
-         r"\usepackage{cmbright}",
-         ]
-})
-matplotlib.rc('text', usetex=True)
+# TODO this is probably the failed try to make matplotlib and latex fonts equal
+#plt.rcParams.update({
+#    "pgf.texsystem": "pdflatex",
+#    "pgf.rcfonts": False,
+#    "pgf.preamble": [
+#         r"\usepackage[T1]{fontenc}",
+#         r"\usepackage{cmbright}",
+#         ]
+#})
+#matplotlib.rc('text', usetex=True)
+#matplotlib.rcParams['font.family'] = 'sans-serif'
+#matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
+
+plt.rcParams["font.size"] = "14"
 
 
 def savefig_history_turbines():
