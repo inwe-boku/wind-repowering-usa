@@ -97,7 +97,6 @@ def load_wind_speed(years, months):
     except TypeError:
         years = [years]
 
-
     try:
         iter(months)
     except TypeError:
