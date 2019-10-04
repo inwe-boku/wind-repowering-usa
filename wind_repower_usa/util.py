@@ -67,4 +67,5 @@ def choose_samples(*objs, num_samples, dim):
 
     np.random.seed(42)
     idcs = np.random.choice(objs[0].sizes[dim], size=num_samples)
+    idcs.sort()
     return (obj.isel({dim: idcs}) for obj in objs)

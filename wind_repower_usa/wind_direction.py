@@ -125,10 +125,13 @@ def calc_wind_rose(turbines, wind_speed, wind_velocity, power_curve=None, bins=7
 
     wind_rose.attrs['bins'] = bins
     wind_rose.attrs['directivity_width'] = directivity_width
+    wind_rose.attrs['num_samples'] = num_samples
     prevail_wind_direction_xr['bins'] = bins
     prevail_wind_direction_xr['directivity_width'] = directivity_width
+    prevail_wind_direction_xr['num_samples'] = num_samples
     directivity['bins'] = bins
     directivity['directivity_width'] = directivity_width
+    directivity['num_samples'] = num_samples
 
     return wind_rose, prevail_wind_direction_xr, directivity
 
