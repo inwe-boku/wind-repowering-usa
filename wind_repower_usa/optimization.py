@@ -194,7 +194,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
     return optimal_locations
 
 
-def calc_repower_potential(power_generation_new, power_generation_old, optimal_locations):
+def calc_repower_potential(power_generation_new, power_generation_old, is_optimal_location,
+                           cluster_per_location):
     """Calculate total average power generation and total number of turbines per number of new
     installed turbines.
 
@@ -202,26 +203,23 @@ def calc_repower_potential(power_generation_new, power_generation_old, optimal_l
 
     Parameters
     ----------
-    power_generation_new : xr.DataArray of length N
+    power_generation_new : xr.DataArray (dims: turbines, turbine_model)
         for each turbine (N turbines) an expected power generation
-        might support dim=turbine_model in future, but not yet
-    power_generation_old : xr.DataArray of length N
+
+    power_generation_old : xr.DataArray (dims: turbines)
         as ``power_generation_new`` but for the currently installed turbines, i.e. with a power
         curve which is currently used and with capacity scaling
-    optimal_locations :
-        the optimal choice of locations for the turbine model used for power_generation_new,
-        see ``calc_optimal_locations()``
+    is_optimal_location : xr.DataArray (dims: turbines, turbine_model)
+        contains the optimization result for each turbine_model, does not support an optimization
+        with multiple turbine models per cluster
+    cluster_per_location :
+        clustering used for all optimizations
 
     Returns
     -------
     repower_potential : xr.Dataset
 
     """
-    # TODO this function could probably run faster (25s ATM) with a bit more sophisticated code
-
-    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
-    cluster_per_location = optimal_locations.cluster_per_location
-
     # can be negative if distances between locations are very close and not many turbines fit in
     power_gain_per_turbine = power_generation_new * is_optimal_location - power_generation_old
 
@@ -237,39 +235,48 @@ def calc_repower_potential(power_generation_new, power_generation_old, optimal_l
 
     # cluster_sizes_old has been already calculated in calc_location_clusters(), but doesn't matter
     _, cluster_sizes_old = np.unique(cluster_per_location, return_counts=True)
-    cluster_sizes_new = is_optimal_location.groupby(cluster_per_location).sum()
+    cluster_sizes_new = is_optimal_location.groupby(cluster_per_location).sum(dim='turbines')
 
-    # just a naive plausibility test, would be nicer to move this to unit tests
-    assert np.sum(cluster_sizes_old < cluster_sizes_new) == 0, ("some clusters have more turbines "
-                                                                "after repowering")
-
-    power_gain_per_cluster = power_gain_per_turbine.groupby(cluster_per_location).sum()
-    power_per_cluster_mean = power_gain_per_cluster / cluster_sizes_new
+    power_gain_per_cluster = power_gain_per_turbine.groupby(
+        cluster_per_location).sum(dim='turbines')
+    avg_power_gain_per_cluster = power_gain_per_cluster / cluster_sizes_new
 
     # sort clusters decreasing by average power per new (repowered) turbine in cluster
-    cluster_idcs = np.argsort(power_per_cluster_mean)[::-1].values
+    cluster_idcs = avg_power_gain_per_cluster.max(dim='turbine_model').argsort()[::-1].values
 
-    # assume the first n clusters in the sorted list are repowered
+    best_turbine_model_idcs = {
+        'turbine_model': avg_power_gain_per_cluster.argmax(dim='turbine_model')}
 
-    power_generation_new_feasable = power_generation_new * is_optimal_location
-    power_per_cluster_new = power_generation_new_feasable.groupby(cluster_per_location).sum().values
-    power_per_cluster_old = power_generation_old.groupby(cluster_per_location).sum().values
+    # dims: cluster, turbine_model - only best model turbines contain non-zero values
+    power_gain_best_model = xr.zeros_like(power_gain_per_cluster)
+    power_gain_best_model[best_turbine_model_idcs] = power_gain_per_cluster[best_turbine_model_idcs]
+
+    power_gain = power_gain_best_model.isel(cluster=cluster_idcs).cumsum(dim='cluster')
+    power_generation = power_generation_old.sum() + power_gain.sum(dim='turbine_model')
+
+    num_turbines_best_model = xr.zeros_like(cluster_sizes_new)
+    num_turbines_best_model[best_turbine_model_idcs] = cluster_sizes_new[best_turbine_model_idcs]
+
+    number_new_turbines = num_turbines_best_model.isel(
+        cluster=cluster_idcs).sum(dim='turbine_model').cumsum(dim='cluster')
+
+    # just a naive plausibility test, would be nicer to move this to unit tests
+    assert np.sum(cluster_sizes_old < cluster_sizes_new.sum(dim='turbine_model')) == 0, (
+        "some clusters have more turbines after repowering")
 
     def reverse_cumsum(a):
         return np.hstack(((a[::-1].cumsum())[::-1][1:], [0]))
 
-    total_power_new = np.cumsum(power_per_cluster_new[cluster_idcs])
-    total_power_old = reverse_cumsum(power_per_cluster_old[cluster_idcs])
-
-    power_generation = total_power_new + total_power_old
-
-    number_new_turbines = np.cumsum(cluster_sizes_new.values[cluster_idcs])
     number_old_turbines = reverse_cumsum(cluster_sizes_old[cluster_idcs])
 
+    # assume the first n clusters in the sorted list are repowered
     # TODO num_new_turbines == 0 is missing, could be added to extend the plot
     repower_potential = xr.Dataset({
         'power_generation': ('num_new_turbines', power_generation),
         'num_turbines': ('num_new_turbines', number_new_turbines + number_old_turbines)},
-        coords={'num_new_turbines': number_new_turbines}
+        coords={'num_new_turbines': number_new_turbines.values}
     )
+
+    # TODO assert that power_generation's derivative is monotone increasing
+
     return repower_potential

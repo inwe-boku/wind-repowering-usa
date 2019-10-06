@@ -135,8 +135,10 @@ def test_calc_repower_potential():
 
     np.random.seed(42)
 
-    power_generation_old = xr.DataArray(np.linspace(42, 23, num=num_turbines), dims='turbines')
-    power_generation_new = xr.DataArray(np.linspace(40, 45, num=num_turbines), dims='turbines')
+    power_generation_old = xr.DataArray(np.linspace(42, 23, num=num_turbines)[np.newaxis, :],
+                                        dims=('turbine_model', 'turbines'))
+    power_generation_new = xr.DataArray(np.linspace(40, 45, num=num_turbines)[np.newaxis, :],
+                                        dims=('turbine_model', 'turbines'))
     optimal_locations = xr.Dataset({
         'is_optimal_location':
             (('turbines', 'turbine_model'), (np.arange(num_turbines) % 2)[:, np.newaxis]),
@@ -144,14 +146,15 @@ def test_calc_repower_potential():
     })
 
     # add additional cluster to make test not dependent on random choice
-    power_generation_new[-1] = 1000
-    power_generation_new[-5:-1] = 100
+    power_generation_new[{'turbines': -1}] = 1000
+    power_generation_new[{'turbines': slice(-5, -1)}] = 100
     optimal_locations.cluster_per_location[-5:-1] = optimal_locations.cluster_per_location.max() + 1
     optimal_locations.cluster_per_location[-1] = optimal_locations.cluster_per_location.max() + 1
 
     repower_potential = calc_repower_potential(power_generation_new,
                                                power_generation_old,
-                                               optimal_locations)
+                                               optimal_locations.is_optimal_location,
+                                               optimal_locations.cluster_per_location)
 
     assert repower_potential.num_new_turbines[-1] == num_turbines//2
     assert repower_potential.num_new_turbines[-1] == repower_potential.num_turbines[-1]
@@ -162,4 +165,4 @@ def test_calc_repower_potential():
                                power_generation_old.sum() + 1000 - 23)
     np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=3),
                                power_generation_old.sum() + 100*2 + 1000
-                               - power_generation_old[-5:].sum())
+                               - power_generation_old[{'turbines': slice(-5, None)}].sum())

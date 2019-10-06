@@ -20,10 +20,13 @@ def calc_optimal_locations_worker(params):
                                                               capacity_scaling=True)
 
     optimal_locations = load_optimal_locations(turbine_model_new, distance_factor)
+    is_optimal_location = optimal_locations.is_optimal_location
+    cluster_per_location = optimal_locations.cluster_per_location
 
     repower_potential = calc_repower_potential(power_generation_new=power_generation_new,
                                                power_generation_old=power_generation_old,
-                                               optimal_locations=optimal_locations)
+                                               is_optimal_location=is_optimal_location,
+                                               cluster_per_location=cluster_per_location)
 
     repower_potential.attrs['turbine_model_new'] = turbine_model_new.file_name
     repower_potential.attrs['turbine_model_old'] = turbine_model_old.file_name
