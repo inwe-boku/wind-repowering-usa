@@ -3,7 +3,8 @@ import xarray as xr
 
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.optimization import calc_optimal_locations_cluster, calc_optimal_locations
+from wind_repower_usa.optimization import calc_optimal_locations_cluster, calc_optimal_locations, \
+    calc_repower_potential
 from wind_repower_usa.turbine_models import e126, Turbine
 
 
@@ -126,3 +127,33 @@ def test_find_optimal_locations():
         assert np.sum(is_optimal_location[0, idcs]) == 1.  # either one or the other is optimal
 
     assert all(np.delete(is_optimal_location[0], np.array(idcs_pairs).flatten()) == 1.)
+
+
+def test_calc_repower_potential():
+    num_turbines = 1232
+    num_clusters = 42  # including outliers, excluding one additional cluster
+
+    np.random.seed(42)
+
+    power_generation_old = xr.DataArray(np.linspace(42, 23, num=num_turbines), dims='turbines')
+    power_generation_new = xr.DataArray(np.linspace(40, 45, num=num_turbines), dims='turbines')
+    optimal_locations = xr.Dataset({
+        'is_optimal_location':
+            (('turbines', 'turbine_model'), (np.arange(num_turbines) % 2)[:, np.newaxis]),
+        'cluster_per_location': ('turbines', np.random.choice(num_clusters, num_turbines) - 1)
+    })
+
+    # add additional cluster to make test not dependent on random choice
+    optimal_locations.cluster_per_location[-1] = optimal_locations.cluster_per_location.max() + 1
+
+    repower_potential = calc_repower_potential(power_generation_new,
+                                               power_generation_old,
+                                               optimal_locations)
+
+    assert repower_potential.num_new_turbines[-1] == num_turbines//2
+    assert repower_potential.num_new_turbines[-1] == repower_potential.num_turbines[-1]
+    np.testing.assert_allclose(repower_potential.power_generation[-1],
+                               (power_generation_new * optimal_locations.is_optimal_location).sum())
+
+    np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=1),
+                               power_generation_old.sum() + 45 - 23)

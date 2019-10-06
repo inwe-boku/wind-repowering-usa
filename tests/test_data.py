@@ -51,4 +51,10 @@ def test_repowering_increases_output():
     assert np.sum(is_optimal_location * power_generation_new) > np.sum(power_generation_old)
 
 
+def test_load_repower_potential():
+    repower_potential = load_repower_potential(e138ep3, 4)
+    some_value = repower_potential.sel(num_new_turbines=242)
+    np.testing.assert_allclose(some_value.power_generation, 266855.979398)
+    assert some_value.num_turbines == 58403
+
 # TODO test all data for NaNs if they shouldn't contain Nans!
