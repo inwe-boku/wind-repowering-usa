@@ -144,6 +144,9 @@ def test_calc_repower_potential():
     })
 
     # add additional cluster to make test not dependent on random choice
+    power_generation_new[-1] = 1000
+    power_generation_new[-5:-1] = 100
+    optimal_locations.cluster_per_location[-5:-1] = optimal_locations.cluster_per_location.max() + 1
     optimal_locations.cluster_per_location[-1] = optimal_locations.cluster_per_location.max() + 1
 
     repower_potential = calc_repower_potential(power_generation_new,
@@ -156,4 +159,7 @@ def test_calc_repower_potential():
                                (power_generation_new * optimal_locations.is_optimal_location).sum())
 
     np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=1),
-                               power_generation_old.sum() + 45 - 23)
+                               power_generation_old.sum() + 1000 - 23)
+    np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=3),
+                               power_generation_old.sum() + 100*2 + 1000
+                               - power_generation_old[-5:].sum())
