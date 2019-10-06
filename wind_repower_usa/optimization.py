@@ -261,8 +261,8 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
         cluster=cluster_idcs).sum(dim='turbine_model').cumsum(dim='cluster')
 
     # just a naive plausibility test, would be nicer to move this to unit tests
-    assert np.sum(cluster_sizes_old < cluster_sizes_new.sum(dim='turbine_model')) == 0, (
-        "some clusters have more turbines after repowering")
+    assert np.all(cluster_sizes_old >= cluster_sizes_new), ("some clusters have more turbines "
+                                                            "after repowering")
 
     def reverse_cumsum(a):
         return np.hstack(((a[::-1].cumsum())[::-1][1:], [0]))
