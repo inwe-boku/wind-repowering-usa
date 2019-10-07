@@ -237,13 +237,11 @@ def plot_optimized_cluster(turbines, optimal_locations, turbine, distance_factor
                     )
         has_label = True
 
-    q = ax.quiver(locations_old_xlon,
-                  locations_old_ylat,
-                  np.cos(prevail_wind_direction.sel(turbines=idcs)),
-                  np.sin(prevail_wind_direction.sel(turbines=idcs)),
-                  width=0.0017,
-                  color='k',
-                  )
+    ax.quiver(locations_old_xlon, locations_old_ylat,
+              np.cos(prevail_wind_direction.sel(turbines=idcs)),
+              np.sin(prevail_wind_direction.sel(turbines=idcs)),
+              width=0.0017,
+              color='k')
 
     def add_arrow(label):
         # not sure why quiver key is not working
@@ -257,9 +255,9 @@ def plot_optimized_cluster(turbines, optimal_locations, turbine, distance_factor
             return p
 
         arrow = plt.arrow(0, 0, 1, 1, color='k')
-        h, l = ax.get_legend_handles_labels()
-        plt.legend(h + [arrow], l + [label],
-                   handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow),})
+        handles, labels = ax.get_legend_handles_labels()
+        plt.legend(handles + [arrow], labels + [label],
+                   handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow), })
 
     ax.legend()
     add_arrow('Prevailing wind direction')
