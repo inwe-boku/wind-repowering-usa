@@ -201,18 +201,13 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
                            turbine, distance_factors, prevail_wind_direction):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
-    cluster = 1158
+    cluster = 736    # some arbitrary cluster with 70-100 turbines or so, depends on clustering!
     locations = turbine_locations(turbines)
     idcs = cluster_per_location == cluster
     is_optimal_location = is_optimal_location.sum(dim='turbine_model')
     is_optimal_location = is_optimal_location.astype(np.bool)
     locations_old_ylat, locations_old_xlon = locations[idcs].T
     locations_new_ylat, locations_new_xlon = locations[idcs & is_optimal_location].T
-
-    ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#efc220',
-            label='Current location of wind turbine')
-    ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
-            label='Optimal location for {}'.format(turbine.name))
 
     def radial_plot(ax, angles, radius, center, label):
         angles = np.append(angles, angles[0])
@@ -236,6 +231,12 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
                     label='Minimum distance to other turbine' if not has_label else ''
                     )
         has_label = True
+
+    ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#efc220',
+            label='Current location of wind turbine')
+
+    ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
+            label='Optimal location for {}'.format(turbine.name))
 
     ax.quiver(locations_old_xlon, locations_old_ylat,
               np.cos(prevail_wind_direction.sel(turbines=idcs)),
