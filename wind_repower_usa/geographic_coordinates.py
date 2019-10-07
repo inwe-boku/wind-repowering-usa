@@ -7,6 +7,7 @@ from wind_repower_usa.constants import EARTH_RADIUS_KM
 # TODO rename to km
 from wind_repower_usa.load_data import load_optimal_locations
 from wind_repower_usa.turbine_models import e138ep3
+from wind_repower_usa.util import turbine_locations
 
 
 def geolocation_distances(locations):
@@ -112,7 +113,7 @@ def calc_min_distances(locations, cluster_per_location=None, n_closest=1):
         return xr.DataArray(closest_location_distances, dims=('turbines', 'n_closest'))
 
 
-def calc_location_clusters(locations, min_distance_km=0.5):
+def calc_location_clusters(turbines, min_distance_km=0.5):
     """Calculate a partitioning of locations given in lang/long into clusters using the DBSCAN
     algorithm.
 
@@ -120,13 +121,13 @@ def calc_location_clusters(locations, min_distance_km=0.5):
 
     Parameters
     ----------
-    locations : np.ndarray
-        with shape (N, 2) - in lat/long
+    turbines : xr.DataSet
+        as returned by load_turbines()
     min_distance_km : float
 
     Returns
     -------
-    cluster_per_location : np.ndarray of shape (N,)
+    cluster_per_location : xr.DataArray (dims: turbines)
         for each location location the cluster index, -1 for outliers, see
         ``sklearn.cluster.DBSCAN``
     clusters : np.ndarray of shape (M,)
@@ -139,6 +140,8 @@ def calc_location_clusters(locations, min_distance_km=0.5):
     https://geoffboeing.com/2014/08/clustering-to-reduce-spatial-data-set-size
 
     """
+    locations = turbine_locations(turbines)
+
     # Parameters for haversine formula
     kms_per_radian = EARTH_RADIUS_KM
     epsilon = min_distance_km / kms_per_radian
@@ -148,5 +151,9 @@ def calc_location_clusters(locations, min_distance_km=0.5):
 
     cluster_per_location = clustering.labels_
     clusters, cluster_sizes = np.unique(cluster_per_location, return_counts=True)
+
+    cluster_per_location = xr.DataArray(cluster_per_location, dims='turbines',
+                                        coords={'turbines': turbines.turbines},
+                                        name='cluster_per_location')  # TODO rename to cluster?
 
     return cluster_per_location, clusters, cluster_sizes

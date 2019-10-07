@@ -161,12 +161,11 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
 
     if turbines is None:
         turbines = load_turbines()
-    locations = turbine_locations(turbines)
 
-    cluster_per_location, clusters, cluster_sizes = calc_location_clusters(locations,
+    cluster_per_location, clusters, cluster_sizes = calc_location_clusters(turbines,
                                                                            min_distance_km)
 
-    # FIXME for outliers clusters==-1 use (only) largest turbine!
+    # FIXME for outliers clusters==-1 use (only) largest turbine in dim=turbine_models!
     is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
 
     # clusters[0] should be cluster -1, i.e. outliers which are always optimal for largest turbine

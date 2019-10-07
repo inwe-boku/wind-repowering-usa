@@ -7,14 +7,12 @@ from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.logging_config import setup_logging
-from wind_repower_usa.util import turbine_locations
 from wind_repower_usa.wind_direction import calc_dist_in_direction, calc_distance_factors
 
 
 setup_logging()
 
 turbines = load_turbines()
-locations = turbine_locations(turbines)
 
 prevail_wind_direction = xr.open_dataarray(
     INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
@@ -29,12 +27,7 @@ min_distance_km = distance_factor * max_rotor_diameter * METER_TO_KM
 assert turbines.t_rd.max() == max_rotor_diameter, "max rotor diameter changed in turbine database"
 
 logging.info('Cluster turbine locations...')
-cluster_per_location, _, _ = calc_location_clusters(locations, min_distance_km=min_distance_km)
-
-# TODO this could be moved to calc_location_clusters()
-cluster_per_location = xr.DataArray(cluster_per_location, dims='turbines',
-                                    coords={'turbines': turbines.turbines},
-                                    name='cluster_per_location ')
+cluster_per_location, _, _ = calc_location_clusters(turbines, min_distance_km=min_distance_km)
 
 # absolute directions (mathematical orientation, 0rad = east)
 logging.info('Calculating distances (absolute direction)...')
