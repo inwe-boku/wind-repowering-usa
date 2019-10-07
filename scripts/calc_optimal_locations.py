@@ -31,7 +31,7 @@ def calc_optimal_locations_worker(params):
 
     if not isinstance(distance_factor, xr.DataArray):
         # this is the old fashion constant distance factor
-        cluster_per_location = load_cluster_per_location(None)
+        cluster_per_location = load_cluster_per_location(distance_factor)
         is_optimal_location = calc_optimal_locations(
             power_generation=power_generation,
             turbine_models=[turbine_model],
@@ -42,7 +42,7 @@ def calc_optimal_locations_worker(params):
         df_filename = f'_{distance_factor}'
     else:
         # this is the distance dependent distance factors
-        cluster_per_location = load_cluster_per_location(distance_factor)
+        cluster_per_location = load_cluster_per_location(None)
         is_optimal_location = calc_optimal_locations(
             power_generation=power_generation,
             turbine_models=[turbine_model],
