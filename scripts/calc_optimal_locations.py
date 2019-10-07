@@ -5,9 +5,6 @@ from multiprocessing import Pool
 import xarray as xr
 
 from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR
-from wind_repower_usa.constants import METER_TO_KM
-from wind_repower_usa.geographic_coordinates import calc_location_clusters
-from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.load_data import load_prevail_wind_direction
 from wind_repower_usa.load_data import load_distance_factors
 from wind_repower_usa.load_data import load_cluster_per_location

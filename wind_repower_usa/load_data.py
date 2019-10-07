@@ -137,10 +137,14 @@ def load_simulated_energy_per_location(turbine_model, capacity_scaling=False):
 
 def load_repower_potential(turbine_model_new, distance_factor):
     turbine_model_old = ge15_77
+    if turbine_model_new == 'mixed':
+        turbine_model_new_fname = 'mixed'
+    else:
+        turbine_model_new_fname = turbine_model_new.file_name
     df_filename = '' if distance_factor is None else f'_{distance_factor}'
     fname = (INTERIM_DIR / 'repower_potential' /
              f'repower_potential_{turbine_model_old.file_name}_'
-             f'{turbine_model_new.file_name}{df_filename }.nc')
+             f'{turbine_model_new_fname}{df_filename }.nc')
 
     return xr.open_dataset(fname)
 

@@ -51,7 +51,7 @@ def savefig_power_curves():
 def savefig_repower_potential():
     repower_potentials = []
     for distance_factor in DISTANCE_FACTORS:
-        for turbine_model_new in new_turbine_models():
+        for turbine_model_new in ('mixed',) + new_turbine_models():
             repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor))
 
     plot_repower_potential(*repower_potentials, variable='power_generation')
@@ -63,7 +63,7 @@ def savefig_repower_potential():
 
 def savefig_repower_potential_direction():
     repower_potentials = []
-    for turbine_model_new in new_turbine_models():
+    for turbine_model_new in ('mixed',) + new_turbine_models():
         repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor=None))
 
     plot_repower_potential(*repower_potentials, variable='power_generation')

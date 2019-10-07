@@ -107,20 +107,21 @@ def plot_power_curve_linearization(power_curve, linear_pc,
 
 
 def plot_repower_potential(*repower_potentials, variable='power_generation'):
-    """This function plots either expected power generation for variabel='power' or """
+    """This function plots either expected power generation or total number of installed
+    turbines."""
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
     plt.xlabel('Number of repowered turbines')
 
     labels = {
-        'power_generation': 'Average wind power generation [GW]',
+        'power_generation': 'Average wind power generation [TWh/yr]',
         'num_turbines': 'Total number of turbines',
     }
 
     plt.ylabel(labels[variable])  # FIXME make sure that this is GW!
     plt.grid(True)
 
-    colors = '#c72321', '#0d8085', '#efc220'
-    turbine_names = (t.file_name for t in new_turbine_models())
+    colors = '#c72321', '#0d8085', '#efc220', '#fbd7a8'
+    turbine_names = ['mixed'] + [t.file_name for t in new_turbine_models()]
     turbine_color = dict(zip(turbine_names, colors))
 
     styles = ('--', '--', 'dotted', '-.', '-')
@@ -136,14 +137,18 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
         turbine_model_name = repower_potential.attrs['turbine_model_new']
         distance_factor = repower_potential.attrs['distance_factor']
         distance_factors.append(distance_factor)
-        turbine_model = getattr(turbine_models, turbine_model_name)
+
+        if turbine_model_name != 'mixed':
+            turbine_model = getattr(turbine_models, turbine_model_name)
+        else:
+            turbine_model = lambda: None   # ok, this a bit dirty...
+            turbine_model.name = 'Best turbine model per cluster'
         color = turbine_color[turbine_model_name]
 
         label = turbine_model.name if distance_factor in (2, 0) else '_nolegend_'
 
         y = {
-            # FIXME this division should be elsewhere
-            'power_generation': power_generation / 365 / 24,
+            'power_generation': power_generation / 1e3,
             'num_turbines': repower_potential.num_turbines
         }
         ax.plot(num_new_turbines, y[variable], linestyle=distance_factor_style[distance_factor],
