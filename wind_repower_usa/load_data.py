@@ -158,3 +158,9 @@ def load_prevail_wind_direction():
 
 def load_distance_factors():
     return xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' / 'distance_factors.nc')
+
+
+def load_cluster_per_location(distance_factor):
+    df_filename = '' if distance_factor is None else f'_{distance_factor}'
+    return xr.open_dataarray(INTERIM_DIR / 'optimal_locations' /
+                             f'cluster_per_location{df_filename}.nc')

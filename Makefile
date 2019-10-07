@@ -51,6 +51,9 @@ calc_prevail_wind_direction:
 calc_dist_in_direction:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_dist_in_direction.py
 
+calc_location_clusters:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_location_clusters.py
+
 calc_optimal_locations:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_optimal_locations.py
 
