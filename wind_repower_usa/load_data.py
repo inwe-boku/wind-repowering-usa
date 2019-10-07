@@ -148,3 +148,13 @@ def load_repower_potential(turbine_model_new, distance_factor):
 def load_distances(relative=True):
     relabs = 'relative' if relative else 'absolute'
     return xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' / f'distances-{relabs}.nc')
+
+
+def load_prevail_wind_direction():
+    prevail_wind_direction = xr.open_dataarray(
+        INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
+    return prevail_wind_direction
+
+
+def load_distance_factors():
+    return xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' / 'distance_factors.nc')

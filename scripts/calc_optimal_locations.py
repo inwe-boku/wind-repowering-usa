@@ -5,6 +5,10 @@ from multiprocessing import Pool
 import xarray as xr
 
 from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR
+from wind_repower_usa.constants import METER_TO_KM
+from wind_repower_usa.geographic_coordinates import calc_location_clusters
+from wind_repower_usa.load_data import load_turbines, load_prevail_wind_direction, \
+    load_distance_factors
 from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.turbine_models import new_turbine_models
 from wind_repower_usa.optimization import calc_optimal_locations
@@ -50,11 +54,8 @@ def calc_optimal_locations_worker(params):
 
 
 def main():
-    prevail_wind_direction = xr.open_dataarray(
-        INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
-
-    distance_factors = xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' /
-                                         'distance_factors.nc')
+    prevail_wind_direction = load_prevail_wind_direction()
+    distance_factors = load_distance_factors()
 
     # TODO the old method wiht constant distance_factors is already quite obsolete
     params = product(new_turbine_models(),

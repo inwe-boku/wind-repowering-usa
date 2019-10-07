@@ -1,11 +1,9 @@
 import logging
 
-import xarray as xr
-
 from wind_repower_usa.config import INTERIM_DIR
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import calc_location_clusters
-from wind_repower_usa.load_data import load_turbines
+from wind_repower_usa.load_data import load_turbines, load_prevail_wind_direction
 from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.wind_direction import calc_dist_in_direction, calc_distance_factors
 
@@ -14,8 +12,7 @@ setup_logging()
 
 turbines = load_turbines()
 
-prevail_wind_direction = xr.open_dataarray(
-    INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
+prevail_wind_direction = load_prevail_wind_direction()
 
 # this means: distances > 15 * 150m will be ignored, we'll deal only with smaller distances
 distance_factor = 15

@@ -3,13 +3,21 @@ import matplotlib.pyplot as plt
 
 from wind_repower_usa.calculations import calc_mean_wind_speed
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR
-from wind_repower_usa.load_data import load_turbines, load_repower_potential, \
-    load_optimal_locations, load_generated_energy_gwh
+from wind_repower_usa.load_data import load_turbines
+from wind_repower_usa.load_data import load_repower_potential
+from wind_repower_usa.load_data import load_optimal_locations
+from wind_repower_usa.load_data import load_generated_energy_gwh
+from wind_repower_usa.load_data import load_prevail_wind_direction
+from wind_repower_usa.load_data import load_distance_factors
 from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.turbine_models import new_turbine_models, e138ep3
-from wind_repower_usa.visualize import plot_repower_potential, plot_mean_wind_speed_and_turbines, \
-    plot_optimized_cluster, plot_simulated_generated_energy, plot_history_turbines, \
-    plot_min_distances, plot_power_curves
+from wind_repower_usa.visualize import plot_repower_potential
+from wind_repower_usa.visualize import plot_mean_wind_speed_and_turbines
+from wind_repower_usa.visualize import plot_optimized_cluster
+from wind_repower_usa.visualize import plot_simulated_generated_energy
+from wind_repower_usa.visualize import plot_history_turbines
+from wind_repower_usa.visualize import plot_min_distances
+from wind_repower_usa.visualize import plot_power_curves
 
 
 # https://matplotlib.org/users/usetex.html
@@ -78,11 +86,9 @@ def savefig_mean_wind_speed_and_turbines(turbines):
 def savefig_optimized_cluster(turbines):
     turbine_model = e138ep3
     optimal_locations = load_optimal_locations(turbine_model, None)
-    prevail_wind_direction = xr.open_dataarray(
-        INTERIM_DIR / 'wind-direction' / 'prevail_wind_direction.nc')
+    prevail_wind_direction = load_prevail_wind_direction()
+    distance_factors = load_distance_factors()
 
-    distance_factors = xr.open_dataarray(INTERIM_DIR / 'distances_in_direction' /
-                                         'distance_factors.nc')
     fig = plot_optimized_cluster(turbines, optimal_locations, turbine_model, distance_factors,
                                  prevail_wind_direction)
     fig.savefig(FIGURES_DIR / 'optimized_cluster.pdf', bbox_inches='tight')
