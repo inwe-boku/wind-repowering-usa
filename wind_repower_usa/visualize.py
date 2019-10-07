@@ -15,6 +15,7 @@ from pandas.plotting import register_matplotlib_converters
 from wind_repower_usa import turbine_models
 from wind_repower_usa.calculations import calc_bounding_box_usa
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGSIZE
+from wind_repower_usa.constants import EARTH_RADIUS_KM, METER_TO_KM
 from wind_repower_usa.load_data import load_generated_energy_gwh, load_turbines
 from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
 from wind_repower_usa.util import turbine_locations, edges_to_center
@@ -196,24 +197,76 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
     return fig
 
 
-def plot_optimized_cluster(locations, optimal_locations, turbine):
+def plot_optimized_cluster(turbines, optimal_locations, turbine, distance_factors,
+                           prevail_wind_direction):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
-    cluster = 2924
+    cluster = 1158
+    locations = turbine_locations(turbines)
     idcs = optimal_locations.cluster_per_location == cluster
     is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
     is_optimal_location = is_optimal_location.astype(np.bool)
     locations_old_ylat, locations_old_xlon = locations[idcs].T
     locations_new_ylat, locations_new_xlon = locations[idcs & is_optimal_location].T
 
-    ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=2, color='#efc220',
+    ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#efc220',
             label='Current location of wind turbine')
-    ax.plot(locations_new_xlon, locations_new_ylat, 'o', markersize=2, color='#c72321',
+    ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
             label='Optimal location for {}'.format(turbine.name))
+
+    def radial_plot(ax, angles, radius, center, label):
+        angles = np.append(angles, angles[0])
+        radius = np.append(radius, radius[0])
+
+        points_complex = center + radius * np.exp(1j * angles)
+        ax.plot(points_complex.real, points_complex.imag, '-', color='gray', linewidth=0.4,
+                label=label)
+        return ax
+
+    rotor_diameter = turbine.rotor_diameter_m
+
+    has_label = False
+    for idx in turbines.turbines[idcs & is_optimal_location]:
+        radius = distance_factors / (EARTH_RADIUS_KM * 2 * np.pi) * 360
+        radius = radius * METER_TO_KM * rotor_diameter
+        center = turbines.isel(turbines=idx).xlong + turbines.isel(turbines=idx).ylat * 1j
+        radial_plot(ax,
+                    angles=distance_factors.direction + prevail_wind_direction.sel(turbines=idx),
+                    radius=radius, center=center.values,
+                    label='Minimum distance to other turbine' if not has_label else ''
+                    )
+        has_label = True
+
+    q = ax.quiver(locations_old_xlon,
+                  locations_old_ylat,
+                  np.cos(prevail_wind_direction.sel(turbines=idcs)),
+                  np.sin(prevail_wind_direction.sel(turbines=idcs)),
+                  width=0.0017,
+                  color='k',
+                  )
+
+    def add_arrow(label):
+        # not sure why quiver key is not working
+        # https://stackoverflow.com/a/22349717/859591
+        from matplotlib.legend_handler import HandlerPatch
+        import matplotlib.patches as mpatches
+
+        def make_legend_arrow(legend, orig_handle, xdescent, ydescent, width, height, fontsize):
+            p = mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
+                                    head_width=0.5 * height)
+            return p
+
+        arrow = plt.arrow(0, 0, 1, 1, color='k')
+        h, l = ax.get_legend_handles_labels()
+        plt.legend(h + [arrow], l + [label],
+                   handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow),})
+
+    ax.legend()
+    add_arrow('Prevailing wind direction')
+
     ax.set_aspect('equal')
     plt.xlabel("Longitude [deg]")
     plt.ylabel("Latitude [deg]")
-    ax.legend()
 
     return fig
 
