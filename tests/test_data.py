@@ -24,12 +24,12 @@ def test_optimal_locations():
     # a non-optimal locations should have a neighbor which is closer than allowed and optimal
 
     # these values are not really confirmed, but helps against regressions
-    assert len(np.unique(cluster_per_location)) == 8964
+    assert len(np.unique(cluster_per_location)) == 8916
     assert is_optimal_location.sum() == 28161
-    np.testing.assert_array_equal(is_optimal_location[[23, 45, 222, 33438]],
+    np.testing.assert_array_equal(is_optimal_location.isel(turbines=[23, 45, 222, 33438]).values,
                                   [0, 0, 0, 1])
-    np.testing.assert_array_equal(cluster_per_location[[23, 45, 222, 38234]],
-                                  [0, 0, 8, 6163])
+    np.testing.assert_array_equal(cluster_per_location.isel(turbines=[23, 45, 222, 38234]).values,
+                                  [0, 0, 8, 6123])
 
 
 def test_repowering_potential():
