@@ -69,3 +69,17 @@ def choose_samples(*objs, num_samples, dim):
     idcs = np.random.choice(objs[0].sizes[dim], size=num_samples)
     idcs.sort()
     return (obj.isel({dim: idcs}) for obj in objs)
+
+
+def is_monotone(a, increasing=True, strict=True):
+    assert isinstance(a, np.ndarray), "pass an numpy object, xrarray can make troubles with coords"
+    if increasing:
+        if strict:
+            return np.all(a[:-1] < a[1:])
+        else:
+            return np.all(a[:-1] <= a[1:])
+    else:
+        if strict:
+            return np.all(a[:-1] > a[1:])
+        else:
+            return np.all(a[:-1] >= a[1:])

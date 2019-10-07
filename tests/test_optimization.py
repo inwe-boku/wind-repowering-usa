@@ -150,13 +150,16 @@ def test_calc_repower_potential():
     power_generation_new[{'turbines': slice(-5, -1)}] = 100
     optimal_locations.cluster_per_location[-5:-1] = optimal_locations.cluster_per_location.max() + 1
     optimal_locations.cluster_per_location[-1] = optimal_locations.cluster_per_location.max() + 1
+    outliers = optimal_locations.cluster_per_location == -1
+    optimal_locations.is_optimal_location[{'turbines': outliers}] = 1
 
     repower_potential = calc_repower_potential(power_generation_new,
                                                power_generation_old,
                                                optimal_locations.is_optimal_location,
                                                optimal_locations.cluster_per_location)
 
-    assert repower_potential.num_new_turbines[-1] == num_turbines//2
+    num_even_outliers = np.sum(np.where(outliers)[0] % 2 == 0)
+    assert repower_potential.num_new_turbines[-1] == num_turbines//2 + num_even_outliers
     assert repower_potential.num_new_turbines[-1] == repower_potential.num_turbines[-1]
     np.testing.assert_allclose(repower_potential.power_generation[-1],
                                (power_generation_new * optimal_locations.is_optimal_location).sum())

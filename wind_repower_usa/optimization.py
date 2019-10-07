@@ -7,7 +7,7 @@ import xarray as xr
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import geolocation_distances, calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
-from wind_repower_usa.util import turbine_locations
+from wind_repower_usa.util import turbine_locations, is_monotone
 from wind_repower_usa.wind_direction import calc_directions
 
 
@@ -233,6 +233,11 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
 
     cluster_per_location = xr.DataArray(cluster_per_location, dims='turbines', name='cluster')
 
+    # this means that optimization is wrong or that cluster_per_location does not match with
+    # is_optimal_location...
+    assert np.all(is_optimal_location.groupby(cluster_per_location).sum(dim='turbines') > 0), \
+        "not all clusters have at least one optimal location"
+
     # cluster_sizes_old has been already calculated in calc_location_clusters(), but doesn't matter
     _, cluster_sizes_old = np.unique(cluster_per_location, return_counts=True)
     cluster_sizes_new = is_optimal_location.groupby(cluster_per_location).sum(dim='turbines')
@@ -261,8 +266,8 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
         cluster=cluster_idcs).sum(dim='turbine_model').cumsum(dim='cluster')
 
     # just a naive plausibility test, would be nicer to move this to unit tests
-    assert np.all(cluster_sizes_old >= cluster_sizes_new), ("some clusters have more turbines "
-                                                            "after repowering")
+    assert np.all(xr.DataArray(cluster_sizes_old, dims='cluster') >= cluster_sizes_new), (
+        "some clusters have more turbines after repowering")
 
     def reverse_cumsum(a):
         return np.hstack(((a[::-1].cumsum())[::-1][1:], [0]))
@@ -277,6 +282,13 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
         coords={'num_new_turbines': number_new_turbines.values}
     )
 
-    # TODO assert that power_generation's derivative is monotone increasing
+    # just some naive plausibility checks...
+    derivative = repower_potential.power_generation.differentiate(coord='num_new_turbines')
+    assert is_monotone(derivative.values, increasing=False), \
+        "derivative of power generation is not monotone decreasing, something is wrong here"
+    assert is_monotone(number_new_turbines.values), \
+        "number of new turbines not monotone increasing"
+    assert is_monotone(repower_potential.num_turbines.values, increasing=False, strict=False), \
+        "number of total number of turbines not monotone decreasing"
 
     return repower_potential
