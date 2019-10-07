@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 
 from wind_repower_usa.constants import METER_TO_KM
+from wind_repower_usa.geographic_coordinates import calc_location_clusters
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.optimization import calc_optimal_locations_cluster, calc_optimal_locations, \
     calc_repower_potential
@@ -76,6 +77,7 @@ def test_find_optimal_locations_cluster():
 
 def test_find_optimal_locations_only_outliers():
     turbines = load_turbines()
+    distance_factor = 1e-3
     turbine_model = Turbine(
         name='test turbine',
         file_name='test_turbine',
@@ -86,18 +88,23 @@ def test_find_optimal_locations_only_outliers():
     )
     power_generation = xr.DataArray(np.ones((1, len(turbines.turbines))), dims=('turbine_model',
                                                                                 'turbines'))
-    optimal_locations = calc_optimal_locations(
+    min_distance_km = distance_factor * turbine_model.rotor_diameter_m * METER_TO_KM
+    cluster_per_location, _, _ = calc_location_clusters(turbines, min_distance_km)
+
+    is_optimal_location = calc_optimal_locations(
         power_generation=power_generation,
         turbine_models=[turbine_model],
-        distance_factor=1e-3,  # needs to be > 0
+        cluster_per_location=cluster_per_location,
+        distance_factor=distance_factor,  # needs to be > 0
     )
     # with vanishing distance_factor, we can built at all locations:
-    assert np.all(optimal_locations.is_optimal_location == 1.)
-    assert optimal_locations.is_optimal_location.shape == (1, len(turbines.turbines))
+    assert np.all(is_optimal_location == 1.)
+    assert is_optimal_location.shape == (1, len(turbines.turbines))
 
 
 def test_find_optimal_locations():
     turbines = load_turbines()
+    distance_factor = 2.5e-2
     turbine_model = Turbine(
         name='test turbine',
         file_name='test_turbine',
@@ -108,10 +115,14 @@ def test_find_optimal_locations():
     )
     power_generation = xr.DataArray(np.ones((1, len(turbines.turbines))), dims=('turbine_model',
                                                                                 'turbines'))
-    optimal_locations = calc_optimal_locations(
+    min_distance_km = distance_factor * turbine_model.rotor_diameter_m * METER_TO_KM
+    cluster_per_location, _, _ = calc_location_clusters(turbines, min_distance_km)
+
+    is_optimal_location = calc_optimal_locations(
         power_generation=power_generation,
         turbine_models=[turbine_model],
-        distance_factor=2.5e-2,
+        cluster_per_location=cluster_per_location,
+        distance_factor=distance_factor,
     )
 
     # there are 6 (erroneous) locations with distance < 5.5m to the closest location
@@ -120,8 +131,6 @@ def test_find_optimal_locations():
     # Note that there are erroneous turbine locations, which are only filtered in
     # calc_min_distances_cluster(), which is not used here. It might make sense to clean this
     # data in load_turbines() and use a higher distance_factor for this test.
-
-    is_optimal_location = optimal_locations.is_optimal_location
 
     for idcs in idcs_pairs:
         assert np.sum(is_optimal_location[0, idcs]) == 1.  # either one or the other is optimal
@@ -139,30 +148,32 @@ def test_calc_repower_potential():
                                         dims=('turbine_model', 'turbines'))
     power_generation_new = xr.DataArray(np.linspace(40, 45, num=num_turbines)[np.newaxis, :],
                                         dims=('turbine_model', 'turbines'))
-    optimal_locations = xr.Dataset({
-        'is_optimal_location':
-            (('turbines', 'turbine_model'), (np.arange(num_turbines) % 2)[:, np.newaxis]),
-        'cluster_per_location': ('turbines', np.random.choice(num_clusters, num_turbines) - 1)
-    })
+
+    is_optimal_location = xr.DataArray((np.arange(num_turbines) % 2)[:, np.newaxis],
+                                       dims=('turbines', 'turbine_model'),
+                                       name='is_optimal_location')
+
+    cluster_per_location = xr.DataArray(np.random.choice(num_clusters, num_turbines) - 1,
+                                        dims='turbines')
 
     # add additional cluster to make test not dependent on random choice
     power_generation_new[{'turbines': -1}] = 1000
     power_generation_new[{'turbines': slice(-5, -1)}] = 100
-    optimal_locations.cluster_per_location[-5:-1] = optimal_locations.cluster_per_location.max() + 1
-    optimal_locations.cluster_per_location[-1] = optimal_locations.cluster_per_location.max() + 1
-    outliers = optimal_locations.cluster_per_location == -1
-    optimal_locations.is_optimal_location[{'turbines': outliers}] = 1
+    cluster_per_location[-5:-1] = cluster_per_location.max() + 1
+    cluster_per_location[-1] = cluster_per_location.max() + 1
+    outliers = cluster_per_location == -1
+    is_optimal_location[{'turbines': outliers}] = 1
 
     repower_potential = calc_repower_potential(power_generation_new,
                                                power_generation_old,
-                                               optimal_locations.is_optimal_location,
-                                               optimal_locations.cluster_per_location)
+                                               is_optimal_location,
+                                               cluster_per_location)
 
     num_even_outliers = np.sum(np.where(outliers)[0] % 2 == 0)
     assert repower_potential.num_new_turbines[-1] == num_turbines//2 + num_even_outliers
     assert repower_potential.num_new_turbines[-1] == repower_potential.num_turbines[-1]
     np.testing.assert_allclose(repower_potential.power_generation[-1],
-                               (power_generation_new * optimal_locations.is_optimal_location).sum())
+                               (power_generation_new * is_optimal_location).sum())
 
     np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=1),
                                power_generation_old.sum() + 1000 - 23)

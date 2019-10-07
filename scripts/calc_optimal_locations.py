@@ -7,8 +7,10 @@ import xarray as xr
 from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import calc_location_clusters
-from wind_repower_usa.load_data import load_turbines, load_prevail_wind_direction, \
-    load_distance_factors
+from wind_repower_usa.load_data import load_turbines
+from wind_repower_usa.load_data import load_prevail_wind_direction
+from wind_repower_usa.load_data import load_distance_factors
+from wind_repower_usa.load_data import load_cluster_per_location
 from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.turbine_models import new_turbine_models
 from wind_repower_usa.optimization import calc_optimal_locations
@@ -29,28 +31,32 @@ def calc_optimal_locations_worker(params):
 
     if not isinstance(distance_factor, xr.DataArray):
         # this is the old fashion constant distance factor
-        optimal_locations = calc_optimal_locations(
+        cluster_per_location = load_cluster_per_location(None)
+        is_optimal_location = calc_optimal_locations(
             power_generation=power_generation,
             turbine_models=[turbine_model],
+            cluster_per_location=cluster_per_location,
             distance_factor=distance_factor
         )
-        optimal_locations.attrs['distance_factor'] = distance_factor
+        is_optimal_location.attrs['distance_factor'] = distance_factor
         df_filename = f'_{distance_factor}'
     else:
         # this is the distance dependent distance factors
-        optimal_locations = calc_optimal_locations(
+        cluster_per_location = load_cluster_per_location(distance_factor)
+        is_optimal_location = calc_optimal_locations(
             power_generation=power_generation,
             turbine_models=[turbine_model],
+            cluster_per_location=cluster_per_location,
             distance_factors=distance_factor,
             prevail_wind_direction=prevail_wind_direction,
         )
         df_filename = ''
 
-    optimal_locations.attrs['turbine_model'] = turbine_model.file_name
+    is_optimal_location.attrs['turbine_model'] = turbine_model.file_name
 
-    optimal_locations.to_netcdf(
+    is_optimal_location.to_netcdf(
         INTERIM_DIR / 'optimal_locations' /
-        f'optimal_locations_{turbine_model.file_name}{df_filename}.nc')
+        f'is_optimal_location_{turbine_model.file_name}{df_filename}.nc')
 
 
 def main():

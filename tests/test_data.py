@@ -3,15 +3,17 @@ mistakes."""
 
 import numpy as np
 
-from wind_repower_usa.load_data import load_optimal_locations, load_simulated_energy_per_location
+from wind_repower_usa.load_data import load_optimal_locations
+from wind_repower_usa.load_data import load_simulated_energy_per_location
+from wind_repower_usa.load_data import load_cluster_per_location
 from wind_repower_usa.load_data import load_repower_potential
 from wind_repower_usa.turbine_models import e138ep3, ge15_77
 
 
 def test_optimal_locations():
-    optimal_locations = load_optimal_locations(turbine_model=e138ep3, distance_factor=4)
-    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
-    cluster_per_location = optimal_locations.cluster_per_location
+    is_optimal_location = load_optimal_locations(turbine_model=e138ep3, distance_factor=4)
+    is_optimal_location = is_optimal_location.sum(dim='turbine_model')
+    cluster_per_location = load_cluster_per_location(4)
 
     num_turbines_per_cluster = is_optimal_location.groupby(cluster_per_location).sum()
 
@@ -45,8 +47,8 @@ def test_repowering_increases_output():
     power_generation_new = load_simulated_energy_per_location(turbine_model_new)
     power_generation_old = load_simulated_energy_per_location(turbine_model_old,
                                                               capacity_scaling=True)
-    optimal_locations = load_optimal_locations(turbine_model=e138ep3, distance_factor=4)
-    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
+    is_optimal_location = load_optimal_locations(turbine_model=e138ep3, distance_factor=4)
+    is_optimal_location = is_optimal_location.sum(dim='turbine_model')
     # it is not not impossible that this fails, but would be a very unexpected result
     assert np.sum(is_optimal_location * power_generation_new) > np.sum(power_generation_old)
 

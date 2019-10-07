@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from wind_repower_usa.calculations import calc_mean_wind_speed
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR
-from wind_repower_usa.load_data import load_turbines
+from wind_repower_usa.load_data import load_turbines, load_cluster_per_location
 from wind_repower_usa.load_data import load_repower_potential
 from wind_repower_usa.load_data import load_optimal_locations
 from wind_repower_usa.load_data import load_generated_energy_gwh
@@ -85,12 +85,14 @@ def savefig_mean_wind_speed_and_turbines(turbines):
 
 def savefig_optimized_cluster(turbines):
     turbine_model = e138ep3
-    optimal_locations = load_optimal_locations(turbine_model, None)
+    is_optimal_location = load_optimal_locations(turbine_model, None)
+    cluster_per_location = load_cluster_per_location(None)
+
     prevail_wind_direction = load_prevail_wind_direction()
     distance_factors = load_distance_factors()
 
-    fig = plot_optimized_cluster(turbines, optimal_locations, turbine_model, distance_factors,
-                                 prevail_wind_direction)
+    fig = plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
+                                 turbine_model, distance_factors, prevail_wind_direction)
     fig.savefig(FIGURES_DIR / 'optimized_cluster.pdf', bbox_inches='tight')
 
 

@@ -197,14 +197,14 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
     return fig
 
 
-def plot_optimized_cluster(turbines, optimal_locations, turbine, distance_factors,
-                           prevail_wind_direction):
+def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
+                           turbine, distance_factors, prevail_wind_direction):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
     cluster = 1158
     locations = turbine_locations(turbines)
-    idcs = optimal_locations.cluster_per_location == cluster
-    is_optimal_location = optimal_locations.is_optimal_location.sum(dim='turbine_model')
+    idcs = cluster_per_location == cluster
+    is_optimal_location = is_optimal_location.sum(dim='turbine_model')
     is_optimal_location = is_optimal_location.astype(np.bool)
     locations_old_ylat, locations_old_xlon = locations[idcs].T
     locations_new_ylat, locations_new_xlon = locations[idcs & is_optimal_location].T

@@ -3,7 +3,8 @@ from itertools import product
 from multiprocessing import Pool
 
 from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR, NUM_PROCESSES
-from wind_repower_usa.load_data import load_optimal_locations, load_simulated_energy_per_location
+from wind_repower_usa.load_data import load_optimal_locations, load_simulated_energy_per_location, \
+    load_cluster_per_location
 from wind_repower_usa.logging_config import setup_logging
 from wind_repower_usa.turbine_models import ge15_77, new_turbine_models
 from wind_repower_usa.optimization import calc_repower_potential
@@ -19,9 +20,8 @@ def calc_optimal_locations_worker(params):
     power_generation_old = load_simulated_energy_per_location(turbine_model_old,
                                                               capacity_scaling=True)
 
-    optimal_locations = load_optimal_locations(turbine_model_new, distance_factor)
-    is_optimal_location = optimal_locations.is_optimal_location
-    cluster_per_location = optimal_locations.cluster_per_location
+    is_optimal_location = load_optimal_locations(turbine_model_new, distance_factor)
+    cluster_per_location = load_cluster_per_location(distance_factor)
 
     repower_potential = calc_repower_potential(power_generation_new=power_generation_new,
                                                power_generation_old=power_generation_old,

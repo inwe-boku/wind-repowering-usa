@@ -5,8 +5,7 @@ from sklearn.cluster import DBSCAN
 from wind_repower_usa.constants import EARTH_RADIUS_KM
 
 # TODO rename to km
-from wind_repower_usa.load_data import load_optimal_locations
-from wind_repower_usa.turbine_models import e138ep3
+from wind_repower_usa.load_data import load_cluster_per_location
 from wind_repower_usa.util import turbine_locations
 
 
@@ -94,8 +93,7 @@ def calc_min_distances(locations, cluster_per_location=None, n_closest=1):
     if cluster_per_location is None:
         # it shouldn't matter to much which clustering is used, because we are not interested in
         # min_distances larger than the distance between clusters.
-        optimal_locations = load_optimal_locations(e138ep3, 4)
-        cluster_per_location = optimal_locations.cluster_per_location
+        cluster_per_location = load_cluster_per_location(4)
 
     clusters = np.unique(cluster_per_location)
     if n_closest == 1:

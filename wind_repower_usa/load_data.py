@@ -121,10 +121,10 @@ def load_wind_speed(years, months):
 
 def load_optimal_locations(turbine_model, distance_factor):
     df_filename = '' if distance_factor is None else f'_{distance_factor}'
-    optimal_locations = xr.open_dataset(
+    is_optimal_location = xr.open_dataset(
         INTERIM_DIR / 'optimal_locations' /
-        f'optimal_locations_{turbine_model.file_name}{df_filename }.nc')
-    return optimal_locations
+        f'is_optimal_location_{turbine_model.file_name}{df_filename }.nc')
+    return is_optimal_location
 
 
 def load_simulated_energy_per_location(turbine_model, capacity_scaling=False):

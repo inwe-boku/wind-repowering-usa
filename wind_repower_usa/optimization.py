@@ -5,7 +5,7 @@ import cvxpy as cp
 import xarray as xr
 
 from wind_repower_usa.constants import METER_TO_KM
-from wind_repower_usa.geographic_coordinates import geolocation_distances, calc_location_clusters
+from wind_repower_usa.geographic_coordinates import geolocation_distances
 from wind_repower_usa.load_data import load_turbines
 from wind_repower_usa.util import turbine_locations, is_monotone
 from wind_repower_usa.wind_direction import calc_directions
@@ -109,8 +109,9 @@ def _extend_distance_factors(distance_factors):
     return distance_factors
 
 
-def calc_optimal_locations(power_generation, turbine_models, distance_factor=None,
-                           distance_factors=None, prevail_wind_direction=None, turbines=None):
+def calc_optimal_locations(power_generation, turbine_models, cluster_per_location,
+                           distance_factor=None, distance_factors=None, prevail_wind_direction=None,
+                           turbines=None):
     """For each (old) turbine location (all turbines from `load_turbines()`), pick at maximum one
     model from `turbine_models` to be installed such that total power_generation is maximized and
     distance thresholds are not violated.
@@ -124,6 +125,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
         will try to find an optimal configuration of these turbine models (mixed also within one
         cluster), this is mostly used for rotor diameter, order of list needs to match with
         dimension `turbine_model` in parameter `power_generation`
+    cluster_per_location : xr.DataArray (dims: turbines)
+        for each turbine location one cluster id, see calc_location_clusters()
     distance_factor : float
         fixed distance factor, provide either this or `dstance_factors`
     distance_factors : xr.DataArray (dim: direction)
@@ -137,9 +140,8 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
 
     Returns
     -------
-    optimal_locations : xr.Dataset
-        variable 'is_optimal_location': 1 if model is optimal (dims: turbine_model, turbines)
-        variable 'cluster_per_location': see ``calc_location_clusters()`` (dims: turbines)
+    is_optimal_location : xr.DataArray
+        1 if model is optimal (dims: turbine_model, turbines)
 
     """
     # TODO to support multiple turbine models, at least the bug for outliers below needs to be fixed
@@ -156,14 +158,10 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
     else:
         distance_factors = _extend_distance_factors(distance_factors)
 
-    max_rotor_diameter_m = max(tm.rotor_diameter_m for tm in turbine_models)
-    min_distance_km = distance_factors.max() * max_rotor_diameter_m * METER_TO_KM
-
     if turbines is None:
         turbines = load_turbines()
 
-    cluster_per_location, clusters, cluster_sizes = calc_location_clusters(turbines,
-                                                                           min_distance_km)
+    clusters = np.unique(cluster_per_location)
 
     # FIXME for outliers clusters==-1 use (only) largest turbine in dim=turbine_models!
     is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
@@ -188,15 +186,13 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
         is_optimal_location[:, locations_in_cluster] = is_optimal_location_cluster
 
     # FIXME turbine coords missing! This is tragic because one turbine is removed!
-    optimal_locations = xr.Dataset({'is_optimal_location': (('turbine_model', 'turbines'),
-                                                            is_optimal_location),
-                                    'cluster_per_location': ('turbines', cluster_per_location)})
+    is_optimal_location = xr.DataArray(is_optimal_location, dims=('turbine_model', 'turbines'),
+                                       name='is_optimal_location')
 
-    assert np.all(optimal_locations.is_optimal_location.groupby(
-        optimal_locations.cluster_per_location).sum(dim='turbines') > 0),\
+    assert np.all(is_optimal_location.groupby(cluster_per_location).sum(dim='turbines') > 0),\
         "not all clusters have at least one optimal location"
 
-    return optimal_locations
+    return is_optimal_location
 
 
 def calc_repower_potential(power_generation_new, power_generation_old, is_optimal_location,
