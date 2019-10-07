@@ -170,11 +170,13 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
     is_optimal_location = np.ones((len(turbine_models), len(cluster_per_location)), dtype=np.int64)
 
     # clusters[0] should be cluster -1, i.e. outliers which are always optimal for largest turbine
-    assert clusters[0] == -1
+    assert clusters[0] == -1, "first cluster does not have index -1"
 
     # TODO this should be replaced by looping over groupby() --> speedup by a couple of minutes
-    for cluster in clusters[1:]:
-        logging.info(f"Optimizing cluster {cluster}...")
+    for i, cluster in enumerate(clusters[1:]):
+        if i % 10 == 0:
+            logging.info(f"Optimizing cluster {cluster} ({[tm.file_name for tm in turbine_models]},"
+                         f" df={distance_factor})...")
         locations_in_cluster = cluster == cluster_per_location
         is_optimal_location_cluster, problem = calc_optimal_locations_cluster(
             turbines=turbines.sel(turbines=locations_in_cluster),
@@ -190,6 +192,10 @@ def calc_optimal_locations(power_generation, turbine_models, distance_factor=Non
     optimal_locations = xr.Dataset({'is_optimal_location': (('turbine_model', 'turbines'),
                                                             is_optimal_location),
                                     'cluster_per_location': ('turbines', cluster_per_location)})
+
+    assert np.all(optimal_locations.is_optimal_location.groupby(
+        optimal_locations.cluster_per_location).sum(dim='turbines') > 0),\
+        "not all clusters have at least one optimal location"
 
     return optimal_locations
 
