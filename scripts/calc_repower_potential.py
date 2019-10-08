@@ -4,7 +4,8 @@ from multiprocessing import Pool
 
 import xarray as xr
 
-from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR, NUM_PROCESSES
+from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR, NUM_PROCESSES, \
+    COMPUTE_CONSTANT_DISTANCE_FACTORS
 from wind_repower_usa.load_data import load_optimal_locations, load_simulated_energy_per_location, \
     load_cluster_per_location
 from wind_repower_usa.logging_config import setup_logging
@@ -60,7 +61,11 @@ def calc_optimal_locations_worker(params):
 
 
 def main():
-    params = product(new_turbine_models() + ('mixed',), (None,) + DISTANCE_FACTORS)
+    distance_factors = (None,)
+    if COMPUTE_CONSTANT_DISTANCE_FACTORS:
+        distance_factors += DISTANCE_FACTORS
+
+    params = product(new_turbine_models() + ('mixed',), distance_factors)
 
     with Pool(processes=NUM_PROCESSES) as pool:
         pool.map(calc_optimal_locations_worker, params)

@@ -1,6 +1,6 @@
 import logging
 
-from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR
+from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR, COMPUTE_CONSTANT_DISTANCE_FACTORS
 from wind_repower_usa.constants import METER_TO_KM
 from wind_repower_usa.geographic_coordinates import calc_location_clusters
 from wind_repower_usa.load_data import load_turbines, load_distance_factors
@@ -17,8 +17,11 @@ turbines = load_turbines()
 # let's assume that the largest model is amongst new_turbine_models()...
 max_rotor_diameter_m = max(tm.rotor_diameter_m for tm in new_turbine_models())
 
+df = (0,)
+if COMPUTE_CONSTANT_DISTANCE_FACTORS:
+    df += DISTANCE_FACTORS
 
-for distance_factor in DISTANCE_FACTORS + (0,):
+for distance_factor in df:
     logging.info(f"Clustering for distance factor: {distance_factor}...")
     if distance_factor == 0:
         df = distance_factors.max()

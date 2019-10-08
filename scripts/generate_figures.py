@@ -2,7 +2,8 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 from wind_repower_usa.calculations import calc_mean_wind_speed
-from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR
+from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR, \
+    COMPUTE_CONSTANT_DISTANCE_FACTORS
 from wind_repower_usa.load_data import load_turbines, load_cluster_per_location
 from wind_repower_usa.load_data import load_repower_potential
 from wind_repower_usa.load_data import load_optimal_locations
@@ -119,7 +120,8 @@ def save_figures():
 
     savefig_history_turbines()
     savefig_power_curves()
-    savefig_repower_potential()
+    if COMPUTE_CONSTANT_DISTANCE_FACTORS:
+        savefig_repower_potential()
     savefig_repower_potential_direction()
     savefig_mean_wind_speed_and_turbines(turbines)
     savefig_optimized_cluster(turbines)

@@ -4,7 +4,7 @@ from multiprocessing import Pool
 
 import xarray as xr
 
-from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR
+from wind_repower_usa.config import DISTANCE_FACTORS, INTERIM_DIR, COMPUTE_CONSTANT_DISTANCE_FACTORS
 from wind_repower_usa.load_data import load_prevail_wind_direction
 from wind_repower_usa.load_data import load_distance_factors
 from wind_repower_usa.load_data import load_cluster_per_location
@@ -58,11 +58,13 @@ def calc_optimal_locations_worker(params):
 
 def main():
     prevail_wind_direction = load_prevail_wind_direction()
-    distance_factors = load_distance_factors()
+    distance_factors = (load_distance_factors(),)
 
-    # TODO the old method wiht constant distance_factors is already quite obsolete
+    if COMPUTE_CONSTANT_DISTANCE_FACTORS:
+        distance_factors += DISTANCE_FACTORS
+
     params = product(new_turbine_models(),
-                     DISTANCE_FACTORS + (distance_factors,),
+                     distance_factors,
                      [prevail_wind_direction])
 
     # FIXME there is a deadlock because of logging... :-/
