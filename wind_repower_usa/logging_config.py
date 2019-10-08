@@ -1,9 +1,18 @@
+import sys
 import logging.config
 
 from wind_repower_usa.config import LOG_FILE
 
 
+setup_done = False
+
+
 def setup_logging(fname=LOG_FILE):
+    global setup_done
+    if setup_done:
+        raise RuntimeError("Called setup_logging() twice, don't do this!")
+    setup_done = True
+
     NO_COLOR = "\33[m"
     RED, GREEN, ORANGE, BLUE, PURPLE, LBLUE, GREY = (
         map("\33[%dm".__mod__, range(31, 38)))
@@ -44,3 +53,5 @@ def setup_logging(fname=LOG_FILE):
         logging_config['root']['handlers'].append('file')
 
     logging.config.dictConfig(logging_config)
+
+    logging.info("Starting %s....", sys.argv[0])
