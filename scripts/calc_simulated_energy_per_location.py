@@ -12,10 +12,9 @@ year = 2017
 turbines = load_turbines()
 turbine_models = [ge15_77] + list(new_turbine_models())
 
-# simulates the power generation in the current situation for first turbine
-capacity_scaling = True
-
 for turbine_model in turbine_models:
+    # simulates the power generation in the current situation for first turbine
+    capacity_scaling = turbine_model == ge15_77
 
     scaling_str = '' if not capacity_scaling else '_capacity_scaled'
     fname = (INTERIM_DIR / 'simulated_energy_per_location' /
@@ -39,5 +38,3 @@ for turbine_model in turbine_models:
 
     simulated_energy_gwh.to_netcdf(fname)
 
-    # done only for first turbine (ge15_77)
-    capacity_scaling = False
