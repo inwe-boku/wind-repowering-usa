@@ -20,6 +20,10 @@ from wind_repower_usa.load_data import load_generated_energy_gwh, load_turbines
 from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
 from wind_repower_usa.util import turbine_locations, edges_to_center
 
+# this is actually 1 extra color, we have 7 models ATM
+TURBINE_COLORS = ("#c72321", "#861719", "#ba9f7c", "#7a6952",
+                  "#6e9b9e", "#0d8085", "#19484c", "#f0c320",)
+
 
 def plot_simulated_generated_energy(simulated_energy_gwh):
     register_matplotlib_converters()
@@ -120,7 +124,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
     plt.ylabel(labels[variable])  # FIXME make sure that this is GW!
     plt.grid(True)
 
-    colors = '#c72321', '#0d8085', '#efc220', '#fbd7a8'
+    colors = TURBINE_COLORS
     turbine_names = ['mixed'] + [t.file_name for t in new_turbine_models()]
     turbine_color = dict(zip(turbine_names, colors))
 
@@ -137,12 +141,14 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
         turbine_model_name = repower_potential.attrs['turbine_model_new']
         distance_factor = repower_potential.attrs['distance_factor']
         distance_factors.append(distance_factor)
+        linestyle = distance_factor_style[distance_factor]
 
         if turbine_model_name != 'mixed':
             turbine_model = getattr(turbine_models, turbine_model_name)
         else:
             turbine_model = lambda: None   # ok, this a bit dirty...
             turbine_model.name = 'Best turbine model per cluster'
+            linestyle = '--'
         color = turbine_color[turbine_model_name]
 
         label = turbine_model.name if distance_factor in (2, 0) else '_nolegend_'
@@ -151,7 +157,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation'):
             'power_generation': power_generation / 1e3,
             'num_turbines': repower_potential.num_turbines
         }
-        ax.plot(num_new_turbines, y[variable], linestyle=distance_factor_style[distance_factor],
+        ax.plot(num_new_turbines, y[variable], linestyle=linestyle,
                 label=label, color=color)
 
     legend1 = ax.legend(loc='upper left')
@@ -343,8 +349,7 @@ def plot_power_curves():
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
     x = np.linspace(0, 40, num=100)
-    colors = '#c72321', '#7a6952', '#0d8085', '#f0c220'
-    for turbine_model, color in zip((ge15_77,) + new_turbine_models(), colors):
+    for turbine_model, color in zip((ge15_77,) + new_turbine_models(), TURBINE_COLORS):
         linestyle = 'dashed' if turbine_model == ge15_77 else '-'
         ax.plot(x, turbine_model.power_curve(x), label=turbine_model.name, color=color,
                 linestyle=linestyle)
