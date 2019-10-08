@@ -221,9 +221,6 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
     repower_potential : xr.Dataset
 
     """
-    # can be negative if distances between locations are very close and not many turbines fit in
-    power_gain_per_turbine = power_generation_new * is_optimal_location - power_generation_old
-
     cluster_per_location = cluster_per_location.copy()  # copy before modify is cheap & safer
 
     # convert outliers where cluster == -1 to single clusters
@@ -243,6 +240,11 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
     _, cluster_sizes_old = np.unique(cluster_per_location, return_counts=True)
     cluster_sizes_new = is_optimal_location.groupby(cluster_per_location).sum(dim='turbines')
 
+    # can be negative if distances between locations are very close and not many turbines fit in
+    power_gain_per_turbine = power_generation_new * is_optimal_location - power_generation_old
+
+    power_per_cluster = (power_generation_new * is_optimal_location).groupby(
+        cluster_per_location).sum(dim='turbines')
     power_gain_per_cluster = power_gain_per_turbine.groupby(
         cluster_per_location).sum(dim='turbines')
     avg_power_gain_per_cluster = power_gain_per_cluster / cluster_sizes_new
@@ -254,11 +256,11 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
         'turbine_model': avg_power_gain_per_cluster.argmax(dim='turbine_model')}
 
     # dims: cluster, turbine_model - only best model turbines contain non-zero values
-    power_gain_best_model = xr.zeros_like(power_gain_per_cluster)
-    power_gain_best_model[best_turbine_model_idcs] = power_gain_per_cluster[best_turbine_model_idcs]
+    power_best_model = xr.zeros_like(power_per_cluster)
+    power_best_model[best_turbine_model_idcs] = power_per_cluster[best_turbine_model_idcs]
 
-    power_gain = power_gain_best_model.isel(cluster=cluster_idcs).cumsum(dim='cluster')
-    power_generation = power_generation_old.sum() + power_gain.sum(dim='turbine_model')
+    power_generation_per_model = power_best_model.isel(cluster=cluster_idcs).cumsum(dim='cluster')
+    power_generation = power_generation_per_model.sum(dim='turbine_model')
 
     num_turbines_best_model = xr.zeros_like(cluster_sizes_new)
     num_turbines_best_model[best_turbine_model_idcs] = cluster_sizes_new[best_turbine_model_idcs]
@@ -279,7 +281,8 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
     # TODO num_new_turbines == 0 is missing, could be added to extend the plot
     repower_potential = xr.Dataset({
         'power_generation': ('num_new_turbines', power_generation),
-        'power_gain_per_model': (('turbine_model', 'num_new_turbines'), power_gain),
+        'power_generation_per_model': (('turbine_model', 'num_new_turbines'),
+                                       power_generation_per_model),
         'num_turbines': ('num_new_turbines', number_new_turbines + number_old_turbines)},
         coords={'num_new_turbines': number_new_turbines.values}
     )
