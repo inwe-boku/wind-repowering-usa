@@ -205,11 +205,12 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
     Parameters
     ----------
     power_generation_new : xr.DataArray (dims: turbines, turbine_model)
-        for each turbine (N turbines) an expected power generation
-
+        for each turbine (N turbines) an expected power generation, this is supposed to be in
+        GWh/yr, so result is also in GWh/yr (otherwise it would be scaled accordingly)
     power_generation_old : xr.DataArray (dims: turbines)
         as ``power_generation_new`` but for the currently installed turbines, i.e. with a power
         curve which is currently used and with capacity scaling
+        unit must be identical to `power_generation_new`
     is_optimal_location : xr.DataArray (dims: turbines, turbine_model)
         contains the optimization result for each turbine_model, does not support an optimization
         with multiple turbine models per cluster
