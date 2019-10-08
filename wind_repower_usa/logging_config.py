@@ -7,11 +7,17 @@ from wind_repower_usa.config import LOG_FILE
 setup_done = False
 
 
+def log_exception(type_, value, traceback):
+    logging.error("Uncaught exception:", exc_info=(type_, value, traceback))
+
+
 def setup_logging(fname=LOG_FILE):
     global setup_done
     if setup_done:
         raise RuntimeError("Called setup_logging() twice, don't do this!")
     setup_done = True
+
+    sys.excepthook = log_exception
 
     NO_COLOR = "\33[m"
     RED, GREEN, ORANGE, BLUE, PURPLE, LBLUE, GREY = (
