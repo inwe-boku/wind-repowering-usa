@@ -65,6 +65,9 @@ def main():
                      DISTANCE_FACTORS + (distance_factors,),
                      [prevail_wind_direction])
 
+    # FIXME there is a deadlock because of logging... :-/
+    #  https://codewithoutrules.com/2018/09/04/python-multiprocessing/
+
     # NUM_PROCESSES=1 because need more RAM, 24GB is not enough for 2 processes
     with Pool(processes=1) as pool:
         pool.map(calc_optimal_locations_worker, params)
