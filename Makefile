@@ -32,6 +32,11 @@ EIA_API_KEY=$(shell cat eia-api-key)
 download_energy_generation:
 	cd data/external/energy_generation; wget http://api.eia.gov/series/\?api_key\=$(EIA_API_KEY)\&series_id\=ELEC.GEN.WND-US-99.M -O ELEC.GEN.WND-US-99.M.json
 
+compute_all: calc_wind_speed calc_simulated_energy_timeseries \
+	calc_simulated_energy_per_location calc_prevail_wind_direction \
+	calc_dist_in_direction calc_location_clusters calc_min_distances \
+	calc_optimal_locations calc_repower_potential generate_figures
+
 calc_wind_speed:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_wind_speed.py
 
@@ -41,10 +46,6 @@ calc_simulated_energy_timeseries:
 calc_simulated_energy_per_location:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_simulated_energy_per_location.py
 
-# TODO this is kind of obsolete, remove also figure?
-calc_min_distances:
-	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_min_distances.py
-
 calc_prevail_wind_direction:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_prevail_wind_direction.py
 
@@ -53,6 +54,10 @@ calc_dist_in_direction:
 
 calc_location_clusters:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_location_clusters.py
+
+# TODO this is kind of obsolete, remove also figure?
+calc_min_distances:
+	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_min_distances.py
 
 calc_optimal_locations:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/calc_optimal_locations.py
