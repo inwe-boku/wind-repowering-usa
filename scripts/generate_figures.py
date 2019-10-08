@@ -67,8 +67,13 @@ def savefig_repower_potential_direction():
     for turbine_model_new in ('mixed',) + new_turbine_models():
         repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor=None))
 
-    plot_repower_potential(*repower_potentials, variable='power_generation')
+    _, stacklabels = plot_repower_potential(*repower_potentials, variable='power_generation')
     plt.savefig(FIGURES_DIR / 'repower_potential-direction-dependent_power_generation.pdf',
+                bbox_inches='tight')
+
+    plot_repower_potential(load_repower_potential('mixed', distance_factor=None),
+                           variable='power_gain_per_model', stacklabels=stacklabels)
+    plt.savefig(FIGURES_DIR / 'repower_potential-direction-dependent_power_generation-stacked.pdf',
                 bbox_inches='tight')
 
     plot_repower_potential(*repower_potentials, variable='num_turbines')
