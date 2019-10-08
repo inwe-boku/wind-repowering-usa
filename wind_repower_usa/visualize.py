@@ -277,12 +277,14 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
 
 def plot_history_turbines():
     turbines = load_turbines()
-    per_year = turbines.groupby('p_year')
 
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
-    per_year.median().t_cap.plot(label='Median capacity of new turbines [kW]',
-                                 ax=ax, marker='o', color='#efc220')
+    # wow is this complicated to get rid of NaN-warnings by median()! isn't there an easier way?
+    idcs_not_nan = {'turbines': ~np.isnan(turbines.t_cap)}
+    per_year = turbines.t_cap[idcs_not_nan].groupby(turbines.p_year[idcs_not_nan])
+    per_year.median(dim='turbines').plot(label='Median capacity of new turbines [kW]',
+                                         ax=ax, marker='o', color='#efc220')
 
     ax.legend()
     plt.xlabel('Year')
@@ -290,8 +292,10 @@ def plot_history_turbines():
     plt.grid(True)
 
     ax2 = ax.twinx()
-    per_year.median().t_rd.plot(label='Median rotor diameter of new turbines [m]', marker='o',
-                                color='#0d8085', ax=ax2)
+    idcs_not_nan = {'turbines': ~np.isnan(turbines.t_rd)}
+    per_year = turbines.t_rd[idcs_not_nan].groupby(turbines.p_year[idcs_not_nan])
+    per_year.median(dim='turbines').plot(label='Median rotor diameter of new turbines [m]',
+                                         marker='o', color='#0d8085', ax=ax2)
     plt.ylabel("Rotor diameter [m]")
     ax2.legend(loc=1)
 
