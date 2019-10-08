@@ -25,6 +25,11 @@ lint:
 download_turbines:
 	cd data/external/wind_turbines_usa; wget -O uswtdb_v1_3_20190107.csv https://www.sciencebase.gov/catalog/file/get/57bdfd8fe4b03fd6b7df5ff9?f=__disk__17%2Fd8%2Ff9%2F17d8f9c1407c32152e9ee998f5313719b2e9d4d9
 
+download_power_curves:
+	cd data/external/nrel-sam-powercurves; wget -O nrel-sam-wind-turbines.csv https://raw.githubusercontent.com/NREL/SAM/e82337c34199b4383b2cb060660885953a357dba/deploy/libraries/Wind%20Turbines.csv
+	# if you want the latest version, not pinned to a commit use:
+	#cd data/external/nrel-sam-powercurves; wget https://raw.githubusercontent.com/NREL/SAM/develop/deploy/libraries/Wind%20Turbines.csv
+
 download_wind_era5:
 	PYTHONPATH=${PYTHONPATH}:${PWD} python3 scripts/download_wind_era5.py
 
