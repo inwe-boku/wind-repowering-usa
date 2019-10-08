@@ -61,11 +61,20 @@ make download_energy_generation
 make calc_wind_speed
 make calc_simulated_energy_timeseries
 make calc_simulated_energy_per_location
+calc_prevail_wind_direction
+calc_dist_in_direction
+calc_location_clusters
+make calc_min_distances
 make calc_optimal_locations
 make calc_repower_potential
-make calc_min_distances
 make generate_figures
 make slides
+```
+
+There is also a combined Make target for the computation tasks:
+
+```
+make compute_all
 ```
 
 
