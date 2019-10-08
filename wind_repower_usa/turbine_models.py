@@ -1,8 +1,10 @@
 from collections import namedtuple
 
 import numpy as np
+import pandas as pd
 from scipy.interpolate import interp1d
 
+from wind_repower_usa.config import EXTERNAL_DIR
 
 Turbine = namedtuple('Turbine', ('name',
                                  'file_name',
@@ -14,7 +16,42 @@ Turbine = namedtuple('Turbine', ('name',
 
 def new_turbine_models():
     """Return all turbine models used for repowering."""
-    return e138ep3, e126, se_42m140
+    return vestas_v42_600, e44, northwind100, se_34m114, e126, e138ep3, se_42m140
+
+
+def turbine_from_nrel_sam(wind_turbine_model, file_name):
+    """Pass one row of the CSV as `wind_turbine_model` and a machine-readable name as `file_name`"""
+    wind_speeds = [float(x) for x in wind_turbine_model['Wind Speed Array'].split('|')]
+    generation_kw = [float(x) for x in wind_turbine_model['Power Curve Array'].split('|')]
+
+    assert generation_kw[-1] == 0., "no cut-off in power curve, need to be fixed manually"
+
+    wind_speeds += [70.]
+    generation_kw += [0.]
+
+    if wind_speeds[0] > 0.:
+        wind_speeds = [0.] + wind_speeds
+        generation_kw = [0.] + generation_kw
+
+    turbine = Turbine(
+        name=wind_turbine_model['Name'],
+        file_name=file_name,
+        power_curve=interp1d(wind_speeds, generation_kw),
+        capacity_mw=wind_turbine_model['KW Rating'] * 1e-3,
+        rotor_diameter_m=wind_turbine_model['Rotor Diameter'],
+        hub_height_m=None,
+    )
+    return turbine
+
+
+wind_turbine_models = pd.read_csv(EXTERNAL_DIR / 'nrel-sam-powercurves' /
+                                  'nrel-sam-wind-turbines.csv', skiprows=[1, 2])
+
+
+se_34m114 = turbine_from_nrel_sam(wind_turbine_models.iloc[267], 'se_34m114')
+vestas_v42_600 = turbine_from_nrel_sam(wind_turbine_models.iloc[145], 'vestas_v42_600')
+northwind100 = turbine_from_nrel_sam(wind_turbine_models.iloc[118], 'northwind100')
+e44 = turbine_from_nrel_sam(wind_turbine_models.iloc[165], 'e44')
 
 
 def power_curve_ge15_77():
@@ -42,10 +79,14 @@ ge15_77 = Turbine(
 
 
 def power_curve_e138ep3():
-    # https://www.enercon.de/en/products/ep-3/e-138-ep3/
-    # Rated power 	3,500 kW
-    # Rotor diameter 	138,6 m
-    # Hub height in meter 	81 / 111 / 131 / 160
+    """Power curve for Enercon E-138 EP3
+
+    https://www.enercon.de/en/products/ep-3/e-138-ep3/
+
+    Rated power 	3,500 kW
+    Rotor diameter 	138,6 m
+    Hub height in meter 	81 / 111 / 131 / 160
+    """
     wind_speeds = np.hstack((np.linspace(0, 25, num=26), [26, 70]))
     generation_kw = [0., 0., 0., 30., 200., 490., 950., 1400.,  2050.,  2550., 3100., 3400.,
                      3480, 3500., 3500., 3500., 3500., 3500., 3500., 3500., 3500., 3480., 3410.,
@@ -65,7 +106,8 @@ e138ep3 = Turbine(
 
 
 def power_curve_se_42m140():
-    """Power curve for Senvion 4.2M140, extracted by hand from offial spec-sheet at:
+    """Power curve for Senvion 4.2M140
+    Extracted by hand from offial spec-sheet at:
     https://www.senvion.com/global/en/products-services/wind-turbines/4xm/
     """
     wind_speeds = np.hstack(([0., 1., 2., 3.], np.arange(4, 27, step=2), [27., 40.]))
