@@ -279,6 +279,7 @@ def calc_repower_potential(power_generation_new, power_generation_old, is_optima
     # TODO num_new_turbines == 0 is missing, could be added to extend the plot
     repower_potential = xr.Dataset({
         'power_generation': ('num_new_turbines', power_generation),
+        'power_gain_per_model': (('turbine_model', 'num_new_turbines'), power_gain),
         'num_turbines': ('num_new_turbines', number_new_turbines + number_old_turbines)},
         coords={'num_new_turbines': number_new_turbines.values}
     )
