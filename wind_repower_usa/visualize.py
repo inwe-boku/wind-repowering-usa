@@ -21,8 +21,7 @@ from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
 from wind_repower_usa.util import turbine_locations, edges_to_center
 
 # this is actually 1 extra color, we have 7 models ATM
-TURBINE_COLORS = ("#c72321", "#861719", "#ba9f7c", "#7a6952",
-                  "#6e9b9e", "#0d8085", "#19484c", "#f0c320",)
+TURBINE_COLORS = '#000000', '#f0c220', '#0d8085', '#fbd7a8', '#c72321',
 
 
 def plot_simulated_generated_energy(simulated_energy_gwh):
