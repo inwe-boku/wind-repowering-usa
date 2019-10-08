@@ -16,7 +16,7 @@ Turbine = namedtuple('Turbine', ('name',
 
 def new_turbine_models():
     """Return all turbine models used for repowering."""
-    return vestas_v42_600, e44, northwind100, se_34m114, e126, e138ep3, se_42m140
+    return se_34m114, e126, e138ep3, se_42m140
 
 
 def turbine_from_nrel_sam(wind_turbine_model, file_name):
