@@ -344,10 +344,11 @@ def plot_history_turbines():
     return fig
 
 
-def plot_min_distances(turbines, min_distances):
+def plot_min_distances(turbines, distances, title='', factors=None, quantiles=None):
+    distances = distances.where(distances < np.inf)
     idcs_not_nan = ~np.isnan(turbines.t_rd)
     rotor_diameters_m = turbines.t_rd[idcs_not_nan]
-    min_distances_not_nan = min_distances[idcs_not_nan] * 1e3
+    min_distances_not_nan = distances[idcs_not_nan] * 1e3
     bin_edges = np.histogram_bin_edges(rotor_diameters_m, bins=15, range=(5, 155))
     bin_idcs = np.digitize(rotor_diameters_m, bin_edges)
 
@@ -358,21 +359,26 @@ def plot_min_distances(turbines, min_distances):
     x = bin_centers[bin_idcs[idcs_cut_off] - 1]
     ax = sns.stripplot(x=x, y=min_distances_not_nan[idcs_cut_off], jitter=.4, size=1, color='k')
 
-    ax.plot(2 * bin_centers, label='2x', color='#f0c220')
-    ax.plot(3 * bin_centers, label='3x', color='#7a6952')
-    ax.plot(4 * bin_centers, label='4x', color='#c72321')
-    ax.plot(6 * bin_centers, label='6x', color='#fbd7a9')
+    colors = '#c72321', '#fbd7a9', '#f0c220', '#7a6952',
+    factors = factors or DISTANCE_FACTORS
+
+    for color, factor in zip(colors, factors):
+        ax.plot(factor * bin_centers, label=f'{factor:.2f}x', color=color)
 
     colors = '#246b71', '#6a9395', '#84bcbf', '#9bdade'
-    for q, color in zip((0.05, 0.1, 0.2, 0.3), colors):
+    quantiles = quantiles or (0.05, 0.1, 0.2, 0.3)
+    for q, color in zip(quantiles, colors):
         ax.plot(pd.Series(min_distances_not_nan).groupby(bin_idcs).quantile(q=q).values,
-                label=f"{int(q * 100)}\\%% quantile", color=color)
+                label=f"{int(q * 100)}% quantile", color=color)
 
     ax.set_ylim(0, 500)
     ax.set_xlim(0, 11)
 
     plt.ylabel('Distance to closest turbine [m]')
     plt.xlabel('Rotor diameter [m]')
+
+    if title:
+        plt.title(title)
 
     plt.legend()
 

@@ -1,10 +1,11 @@
+import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 
 from wind_repower_usa.calculations import calc_mean_wind_speed
 from wind_repower_usa.config import DISTANCE_FACTORS, FIGURES_DIR, INTERIM_DIR, \
     COMPUTE_CONSTANT_DISTANCE_FACTORS
-from wind_repower_usa.load_data import load_turbines, load_cluster_per_location
+from wind_repower_usa.load_data import load_turbines, load_cluster_per_location, load_distances
 from wind_repower_usa.load_data import load_repower_potential
 from wind_repower_usa.load_data import load_optimal_locations
 from wind_repower_usa.load_data import load_generated_energy_gwh
@@ -122,6 +123,20 @@ def savefig_min_distances(turbines):
     plt.savefig(FIGURES_DIR / 'min_distances_between_turbines.png', bbox_inches='tight', dpi=150)
 
 
+def savefig_distances(turbines):
+    distances = load_distances()
+    direction = np.pi/2.
+    distance_factors = load_distance_factors()
+    factor = distance_factors.sel(direction=direction, method='nearest').values
+    quantile = distance_factors.attrs['quantile']
+    title = (f"Distanes to turbines in {direction / np.pi * 180} relative to "
+             f"prevailing wind direction")
+    plot_min_distances(turbines, distances.sel(direction=direction, method='nearest'),
+                       factors=(factor,), quantiles=(quantile,), title=title)
+    plt.savefig(FIGURES_DIR / 'distances_between_turbines.pdf', bbox_inches='tight')
+    plt.savefig(FIGURES_DIR / 'distances_between_turbines.png', bbox_inches='tight', dpi=150)
+
+
 def save_figures():
     turbines = load_turbines()
 
@@ -135,6 +150,7 @@ def save_figures():
     savefig_simulated_energy_time_series()
     if COMPUTE_CONSTANT_DISTANCE_FACTORS:
         savefig_min_distances(turbines)
+    savefig_distances(turbines)
 
 
 if __name__ == '__main__':
