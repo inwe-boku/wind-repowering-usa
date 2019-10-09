@@ -36,7 +36,7 @@ from wind_repower_usa.visualize import plot_power_curves
 # matplotlib.rcParams['font.family'] = 'sans-serif'
 # matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
 
-plt.rcParams["font.size"] = "14"
+plt.rcParams["font.size"] = "13"
 
 
 def savefig_history_turbines():

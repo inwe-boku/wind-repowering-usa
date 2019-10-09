@@ -16,10 +16,10 @@ Turbine = namedtuple('Turbine', ('name',
 
 def new_turbine_models():
     """Return all turbine models used for repowering."""
-    return se_34m114, e126, e138ep3, se_42m140
+    return se_34m114, e138ep3, se_42m140, e126
 
 
-def turbine_from_nrel_sam(wind_turbine_model, file_name):
+def turbine_from_nrel_sam(wind_turbine_model, file_name, name=None):
     """Pass one row of the CSV as `wind_turbine_model` and a machine-readable name as `file_name`"""
     wind_speeds = [float(x) for x in wind_turbine_model['Wind Speed Array'].split('|')]
     generation_kw = [float(x) for x in wind_turbine_model['Power Curve Array'].split('|')]
@@ -34,7 +34,7 @@ def turbine_from_nrel_sam(wind_turbine_model, file_name):
         generation_kw = [0.] + generation_kw
 
     turbine = Turbine(
-        name=wind_turbine_model['Name'],
+        name=name or wind_turbine_model['Name'],
         file_name=file_name,
         power_curve=interp1d(wind_speeds, generation_kw),
         capacity_mw=wind_turbine_model['KW Rating'] * 1e-3,
@@ -48,7 +48,8 @@ wind_turbine_models = pd.read_csv(EXTERNAL_DIR / 'nrel-sam-powercurves' /
                                   'nrel-sam-wind-turbines.csv', skiprows=[1, 2])
 
 
-se_34m114 = turbine_from_nrel_sam(wind_turbine_models.iloc[267], 'se_34m114')
+se_34m114 = turbine_from_nrel_sam(wind_turbine_models.iloc[267], 'se_34m114',
+                                  name='Senvion 3.4M114 (3.4MW, 114m)')
 vestas_v42_600 = turbine_from_nrel_sam(wind_turbine_models.iloc[145], 'vestas_v42_600')
 northwind100 = turbine_from_nrel_sam(wind_turbine_models.iloc[118], 'northwind100')
 e44 = turbine_from_nrel_sam(wind_turbine_models.iloc[165], 'e44')

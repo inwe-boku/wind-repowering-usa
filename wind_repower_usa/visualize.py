@@ -21,7 +21,7 @@ from wind_repower_usa.turbine_models import new_turbine_models, ge15_77
 from wind_repower_usa.util import turbine_locations, edges_to_center
 
 # this is actually 1 extra color, we have 7 models ATM
-TURBINE_COLORS = '#000000', '#f0c220', '#0d8085', '#fbd7a8', '#c72321',
+TURBINE_COLORS = '#000000', '#f0c220', '#fbd7a8', '#0d8085', '#c72321',
 
 
 def plot_simulated_generated_energy(simulated_energy_gwh):
@@ -169,7 +169,8 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
             ax.plot(num_new_turbines, factor[variable] * repower_potential[variable],
                     linestyle=linestyle, label=label, color=color)
 
-    legend1 = ax.legend(loc='upper left')
+    loc = 'upper left' if variable != 'num_turbines' else None
+    legend1 = ax.legend(loc=loc)
 
     dist_factors = [Line2D([], [], color='black', linestyle=distance_factor_style[df],
                            label=f"Distance factor {df}") for df in distance_factors if df != 0]
