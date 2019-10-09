@@ -221,7 +221,12 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
                            turbine, distance_factors, prevail_wind_direction):
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
-    cluster = 736    # some arbitrary cluster with 70-100 turbines or so, depends on clustering!
+    # some arbitrary cluster with 70-100 turbines or so
+    # probably: cluster=812 (but depends on clustering, therefore pinning via long/lat)
+    x, y = -112.14, 48.52  # some point in cluster
+    some_turbine_idx = (((turbines.xlong - x)**2 + (turbines.ylat - y)**2)**0.5).argmin()
+    cluster = cluster_per_location[some_turbine_idx].values
+
     locations = turbine_locations(turbines)
     idcs = cluster_per_location == cluster
     is_optimal_location = is_optimal_location.sum(dim='turbine_model')
