@@ -54,7 +54,7 @@ def plot_simulated_generated_energy(simulated_energy_gwh):
 
     plt.legend()
     plt.ylabel('Wind energy generation per month [GWh]')
-    plt.xlabel('time')
+    plt.xlabel('Time')
 
     plt.grid(True)
 
@@ -232,9 +232,10 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
 
     # some arbitrary cluster with 70-100 turbines or so
     # probably: cluster=812 (but depends on clustering, therefore pinning via long/lat)
-    x, y = -112.14, 48.52  # some point in cluster
+    x, y = -99.0, 45.92  # some point in cluster
     some_turbine_idx = (((turbines.xlong - x)**2 + (turbines.ylat - y)**2)**0.5).argmin()
     cluster = cluster_per_location[some_turbine_idx].values
+    loc = 'upper left'
 
     locations = turbine_locations(turbines)
     idcs = cluster_per_location == cluster
@@ -276,7 +277,7 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
         ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
                 label='Optimal location for {}'.format(turbine.name))
 
-    ax.legend()
+    ax.legend(loc=loc)
 
     def add_arrow(label):
         # not sure why quiver key is not working
@@ -291,8 +292,14 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
 
         arrow = plt.arrow(0, 0, 1, 1, color='k')
         handles, labels = ax.get_legend_handles_labels()
-        plt.legend(handles + [arrow], labels + [label],
-                   handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow), })
+        labels = labels + [label]
+        handles = handles + [arrow]
+        if step == 3:
+            labels = labels[1:] + labels[:1]
+            handles = handles[1:] + handles[:1]
+        plt.legend(handles, labels,
+                   handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow), },
+                   loc=loc)
 
     if plot_wind_directions:
         ax.quiver(locations_old_xlon, locations_old_ylat,
