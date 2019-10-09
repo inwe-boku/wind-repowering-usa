@@ -131,7 +131,8 @@ def save_figures():
     savefig_mean_wind_speed_and_turbines(turbines)
     savefig_optimized_cluster(turbines)
     savefig_simulated_energy_time_series()
-    savefig_min_distances(turbines)
+    if COMPUTE_CONSTANT_DISTANCE_FACTORS:
+        savefig_min_distances(turbines)
 
 
 if __name__ == '__main__':
