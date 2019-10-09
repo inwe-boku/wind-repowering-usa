@@ -218,8 +218,16 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
     return fig
 
 
-def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
-                           turbine, distance_factors, prevail_wind_direction):
+def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, turbine,
+                           distance_factors, prevail_wind_direction, step=3):
+    plot_optimal_locations = plot_wind_directions = plot_thresholds = False
+    if step > 0:
+        plot_optimal_locations = True
+    if step > 1:
+        plot_wind_directions = True
+    if step > 2:
+        plot_thresholds = True
+
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
     # some arbitrary cluster with 70-100 turbines or so
@@ -240,8 +248,11 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
         radius = np.append(radius, radius[0])
 
         points_complex = center + radius * np.exp(1j * angles)
+        alpha = None if plot_thresholds else 0.  # ugly hack to avoid changing figure size
+        if not plot_thresholds:
+            label = None
         ax.plot(points_complex.real, points_complex.imag, '-', color='gray', linewidth=0.4,
-                label=label)
+                label=label, alpha=alpha)
         return ax
 
     rotor_diameter = turbine.rotor_diameter_m
@@ -261,14 +272,11 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
     ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#efc220',
             label='Current location of wind turbine')
 
-    ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
-            label='Optimal location for {}'.format(turbine.name))
+    if plot_optimal_locations:
+        ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
+                label='Optimal location for {}'.format(turbine.name))
 
-    ax.quiver(locations_old_xlon, locations_old_ylat,
-              np.cos(prevail_wind_direction.sel(turbines=idcs)),
-              np.sin(prevail_wind_direction.sel(turbines=idcs)),
-              width=0.0017,
-              color='k')
+    ax.legend()
 
     def add_arrow(label):
         # not sure why quiver key is not working
@@ -286,8 +294,14 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
         plt.legend(handles + [arrow], labels + [label],
                    handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow), })
 
-    ax.legend()
-    add_arrow('Prevailing wind direction')
+    if plot_wind_directions:
+        ax.quiver(locations_old_xlon, locations_old_ylat,
+                np.cos(prevail_wind_direction.sel(turbines=idcs)),
+                np.sin(prevail_wind_direction.sel(turbines=idcs)),
+                width=0.0017,
+                color='k')
+
+        add_arrow('Prevailing wind direction')
 
     ax.set_aspect('equal')
     plt.xlabel("Longitude [deg]")

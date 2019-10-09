@@ -97,9 +97,11 @@ def savefig_optimized_cluster(turbines):
     prevail_wind_direction = load_prevail_wind_direction()
     distance_factors = load_distance_factors()
 
-    fig = plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
-                                 turbine_model, distance_factors, prevail_wind_direction)
-    fig.savefig(FIGURES_DIR / 'optimized_cluster.pdf', bbox_inches='tight')
+    for step in range(4):
+        fig = plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
+                                    turbine_model, distance_factors, prevail_wind_direction,
+                                     step=step)
+        fig.savefig(FIGURES_DIR / f'optimized_cluster-{step}.pdf', bbox_inches='tight')
 
 
 def savefig_simulated_energy_time_series():
