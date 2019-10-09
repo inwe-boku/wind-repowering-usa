@@ -74,13 +74,14 @@
 
 \newcommand{\F}{\mathbb{F}}
 
-\title{The potential for repowering US wind turbines}
+
+\title{The potential for re-powering wind turbines: reducing turbines, increasing output}
 \author{\small{Peter Regner\inst{1}, Katharina Gruber\inst{1}, Johannes Schmidt\inst{1}, Claude Kl\"ockl\inst{1}}}
 \institute{
     \inst{1}Institute for Sustainable Economic Development,\\
     University of Natural Resources and Life Sciences, Vienna
 }
-\date{2019-04-12, Vienna, EGU 2019}
+\date{2019-10-20, Vienna, INFORMS 2019}
 
 \begin{document}
     %%%%Title Page
@@ -96,19 +97,18 @@
           \maketitle
           \vspace{1.7cm}
           \includegraphics[height=0.7cm]{creative-commons-by.pdf}
-          \includegraphics[height=0.7cm]{graphic_egu_photo_yes.png}
-          \hspace{2cm}\includegraphics[height=1.7cm]{boku-logo.pdf}\\
+          \hspace{3.05cm}\includegraphics[height=1.7cm]{boku-logo.pdf}\\
         \end{frame}
     }
 
     \begin{frame}{Introduction}
         \begin{itemize}
+            \item Low carbon energy systems: land usage is a critical factor \pause
             \item \textbf{repowering} = replacing power plants with newer ones,
                 which have a higher rated \textbf{capacity} or more
                 \textbf{efficiency}\pause
             \item How much power generation gain can be expected in the US with
-                newer wind turbine models?\pause
-            \item How many wind turbines will be installed?
+                newer wind turbine models? \pause How many wind turbines will be installed?
         \end{itemize}
     \end{frame}
 
@@ -132,25 +132,6 @@
         \end{itemize}
     \end{frame}
 
-    \begin{frame}{Historical development of wind turbine characteristics}
-        \includegraphics[width=\textwidth]{../../figures/history_turbines.pdf}
-    \end{frame}
-
-    \begin{frame}{Maximum power generation with different turbines}
-        \textbf{Optimization problem}:\\
-        \bigskip
-        Existing turbines are replaced by newer ones at the location of the old
-        turbines, such that:\\
-        \begin{itemize}
-            \item objective function: total power generation is maximized
-            \item constraints: distance between turbines is not below a threshold
-        \end{itemize}
-    \end{frame}
-
-    \begin{frame}{Minimum distances between turbine locations}
-        \includegraphics[width=\textwidth]{../../figures/min_distances_between_turbines.png}
-    \end{frame}
-
     \begin{frame}{Turbine models}
         \begin{center}
             \begin{tabular}{| l | c | c | l }
@@ -158,6 +139,8 @@
                 \bfseries{Model name} & \bfseries{Rated capacity} & \bfseries{Rotor diameter}\\
                 \hline
                 GE-1.5 77 & 1.5 MW & 77 m\\
+                \hline
+                Senvion 3.4M114 & 3.4 MW & 114 m\\
                 \hline
                 Enercon E-138 EP3 & 3.5 MW & 138 m\\
                 \hline
@@ -182,6 +165,27 @@
         \includegraphics[width=\textwidth]{../../figures/simulated-energy_time-series.pdf}
     \end{frame}
 
+    %\begin{frame}{Historical development of wind turbine characteristics}
+        %\includegraphics[width=\textwidth]{../../figures/history_turbines.pdf}
+    %\end{frame}
+
+    \begin{frame}{Maximum power generation with different turbines}
+        \textbf{Optimization problem}:\\
+        \bigskip
+        Existing turbines are replaced by newer ones at the location of the old
+        turbines, such that:\\
+        \begin{itemize}
+            \item objective function: total power generation is maximized
+            \item constraints: distance between turbines is not below a threshold\pause ,
+                which depends on the direction relative to the prevailing wind direction
+                at the location
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Minimum distances between turbine locations}
+        \includegraphics[width=\textwidth]{../../figures/min_distances_between_turbines.png}
+    \end{frame}
+
     %\begin{frame}{Overview of calculations}
     %    %- data flow diagram
     %    %    - linear interpolation
@@ -194,34 +198,38 @@
     %- weibull
 
     \begin{frame}{Optimal locations for new wind turbines}
-        \includegraphics[width=\textwidth]{../../figures/optimized_cluster.pdf}
+        \includegraphics[width=\textwidth]{../../figures/optimized_cluster-0.pdf}
+    \end{frame}
+
+    \begin{frame}{Optimal locations for new wind turbines}
+        \includegraphics[width=\textwidth]{../../figures/optimized_cluster-1.pdf}
+    \end{frame}
+
+    \begin{frame}{Optimal locations for new wind turbines}
+        \includegraphics[width=\textwidth]{../../figures/optimized_cluster-2.pdf}
+    \end{frame}
+
+    \begin{frame}{Optimal locations for new wind turbines}
+        \includegraphics[width=\textwidth]{../../figures/optimized_cluster-3.pdf}
     \end{frame}
 
     \begin{frame}{Repowering potential: power generation}
-        \includegraphics[width=\textwidth]{../../figures/repower_potential_power_generation.pdf}
+        \includegraphics[width=\textwidth]{../../figures/repower_potential-direction-dependent_power_generation.pdf}
     \end{frame}
 
     \begin{frame}{Repowering potential: number of turbines}
-        \includegraphics[width=\textwidth]{../../figures/repower_potential_num_turbines.pdf}
+        \includegraphics[width=\textwidth]{../../figures/repower_potential-direction-dependent_num_turbines.pdf}
     \end{frame}
 
-    \begin{frame}{Conclusions \& Future work}
+    \begin{frame}{Conclusions}
         Conclusions:\\
         \begin{itemize}
-            \item repowering half of the existing turbines, roughly doubles the
-                power generation output\pause
+            \item repowering less than half of the existing turbines, roughly increases the
+                power generation output by 50\%\pause
             \item repowering leads to a significant drop of total number of
                 turbines installed\pause
-            \item distance factors are not hard boundaries\pause
-        \end{itemize}
-
-        \bigskip
-
-        Future work:\\
-        \begin{itemize}
-            \item address economical questions\pause
-            \item assess complexer models, e.g. allowing different turbine types\pause
-            \item take land-use or different locations into account
+            \item minimum distances between wind turbines can be estimated by a
+                linear model using the rotor diameter\pause
         \end{itemize}
     \end{frame}
 
@@ -236,18 +244,17 @@
     \begin{frame}[plain]
         \frametitle{Thank you!}
         \vspace{1.5cm}
+        https://refuel.world/\\
         peter.regner@boku.ac.at\\
         http://bit.ly/wind-repower-us\\
-        https://refuel.world/\\
 
         \vspace{0.6cm}
         \qrcode[height=1.4cm]{http://bit.ly/wind-repower-us}\\
 
-        \vspace{1.6cm}
-        \includegraphics[height=0.7cm]{creative-commons-by.pdf}
-        \includegraphics[height=0.7cm]{graphic_egu_photo_yes.png}\\
+        \vspace{1.95cm}
+        \includegraphics[height=0.7cm]{creative-commons-by.pdf}\\
         \smallskip
-        \small{We gratefully acknowledge support from the European\\
+        \tiny{We gratefully acknowledge support from the European\\
         Research Council (“reFUEL” ERC-2017-STG 758149).}
     \end{frame}
     }
