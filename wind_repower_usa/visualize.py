@@ -201,8 +201,7 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
     north, west, south, east = calc_bounding_box_usa(turbines)
     extent = [west, east, south, north]
 
-    cmap = LinearSegmentedColormap.from_list('water', ['#273738', '#246b71', '#6a9395',
-                                                       '#84bcbf', '#9bdade'])
+    cmap = LinearSegmentedColormap.from_list('water', ['#9bdade', '#FFFFFF'])
 
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 

@@ -83,11 +83,12 @@ def savefig_repower_potential_direction():
 
 
 def savefig_mean_wind_speed_and_turbines(turbines):
+    np.random.seed(42)
     wind_speed_mean = calc_mean_wind_speed(years=range(2010, 2019),
                                            sample_size=200)
     plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines)
     plt.savefig(FIGURES_DIR / 'mean_wind_speed_and_turbines.pdf', bbox_inches='tight')
-    plt.savefig(FIGURES_DIR / 'mean_wind_speed_and_turbines.png', bbox_inches='tight', dpi=150)
+    plt.savefig(FIGURES_DIR / 'mean_wind_speed_and_turbines.png', bbox_inches='tight', dpi=300)
 
 
 def savefig_optimized_cluster(turbines):
@@ -120,7 +121,7 @@ def savefig_min_distances(turbines):
     min_distances = xr.open_dataarray(INTERIM_DIR / 'min_distances' / 'min_distances.nc')
     plot_min_distances(turbines, min_distances)
     plt.savefig(FIGURES_DIR / 'min_distances_between_turbines.pdf', bbox_inches='tight')
-    plt.savefig(FIGURES_DIR / 'min_distances_between_turbines.png', bbox_inches='tight', dpi=150)
+    plt.savefig(FIGURES_DIR / 'min_distances_between_turbines.png', bbox_inches='tight', dpi=300)
 
 
 def savefig_distances(turbines):
@@ -129,12 +130,12 @@ def savefig_distances(turbines):
     distance_factors = load_distance_factors()
     factor = distance_factors.sel(direction=direction, method='nearest').values
     quantile = distance_factors.attrs['quantile']
-    title = (f"Distanes to turbines in {direction / np.pi * 180} relative to "
+    title = (f"Distances to turbines in {direction / np.pi * 180}° relative to "
              f"prevailing wind direction")
     plot_min_distances(turbines, distances.sel(direction=direction, method='nearest'),
                        factors=(factor,), quantiles=(quantile,), title=title)
     plt.savefig(FIGURES_DIR / 'distances_between_turbines.pdf', bbox_inches='tight')
-    plt.savefig(FIGURES_DIR / 'distances_between_turbines.png', bbox_inches='tight', dpi=150)
+    plt.savefig(FIGURES_DIR / 'distances_between_turbines.png', bbox_inches='tight', dpi=300)
 
 
 def save_figures():
