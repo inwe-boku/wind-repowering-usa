@@ -37,4 +37,3 @@ for turbine_model in turbine_models:
                                                  only_built_turbines=False)
 
     simulated_energy_gwh.to_netcdf(fname)
-

@@ -152,7 +152,8 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
         if turbine_model_name != 'mixed':
             turbine_model = getattr(turbine_models, turbine_model_name)
         else:
-            class Turbine: pass  # ok, this a bit dirty...
+            class Turbine:
+                pass  # ok, this a bit dirty...
             turbine_model = Turbine()
             turbine_model.name = 'Best turbine model per cluster'
             linestyle = '--'
@@ -302,10 +303,10 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
 
     if plot_wind_directions:
         ax.quiver(locations_old_xlon, locations_old_ylat,
-                np.cos(prevail_wind_direction.sel(turbines=idcs)),
-                np.sin(prevail_wind_direction.sel(turbines=idcs)),
-                width=0.0017,
-                color='k')
+                  np.cos(prevail_wind_direction.sel(turbines=idcs)),
+                  np.sin(prevail_wind_direction.sel(turbines=idcs)),
+                  width=0.0017,
+                  color='k')
 
         add_arrow('Prevailing wind direction')
 
