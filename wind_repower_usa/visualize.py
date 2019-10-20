@@ -221,12 +221,16 @@ def plot_mean_wind_speed_and_turbines(wind_speed_mean, turbines):
 def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, turbine,
                            distance_factors, prevail_wind_direction, step=3):
     plot_optimal_locations = plot_wind_directions = plot_thresholds = False
+    plot_non_optimal_locations = True
     if step > 0:
-        plot_optimal_locations = True
-    if step > 1:
         plot_wind_directions = True
-    if step > 2:
+    if step > 1:
         plot_thresholds = True
+    if step > 2:
+        plot_optimal_locations = True
+    if step > 3:
+        plot_non_optimal_locations = False
+        plot_wind_directions = False
 
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
 
@@ -243,6 +247,10 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
     is_optimal_location = is_optimal_location.astype(np.bool)
     locations_old_ylat, locations_old_xlon = locations[idcs].T
     locations_new_ylat, locations_new_xlon = locations[idcs & is_optimal_location].T
+
+    if plot_non_optimal_locations:
+        ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#0d8085',
+                label='Current location of wind turbine')
 
     def radial_plot(ax, angles, radius, center, label):
         angles = np.append(angles, angles[0])
@@ -270,12 +278,9 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
                     )
         has_label = True
 
-    ax.plot(locations_old_xlon, locations_old_ylat, 'o', markersize=4, color='#efc220',
-            label='Current location of wind turbine')
-
     if plot_optimal_locations:
-        ax.plot(locations_new_xlon, locations_new_ylat, 'x', markersize=3, color='#c72321',
-                label='Optimal location for {}'.format(turbine.name))
+        ax.plot(locations_new_xlon, locations_new_ylat, 'o', markersize=7, color='#c72321',
+                fillstyle='none', label='Optimal location for {}'.format(turbine.name))
 
     ax.legend(loc=loc)
 
@@ -292,11 +297,9 @@ def plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location, 
 
         arrow = plt.arrow(0, 0, 1, 1, color='k')
         handles, labels = ax.get_legend_handles_labels()
-        labels = labels + [label]
-        handles = handles + [arrow]
-        if step == 3:
-            labels = labels[1:] + labels[:1]
-            handles = handles[1:] + handles[:1]
+
+        labels = labels[:1] + [label] + labels[1:]
+        handles = handles[:1] + [arrow] + handles[1:]
         plt.legend(handles, labels,
                    handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=make_legend_arrow), },
                    loc=loc)

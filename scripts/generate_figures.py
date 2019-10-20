@@ -65,7 +65,7 @@ def savefig_repower_potential():
 
 def savefig_repower_potential_direction():
     repower_potentials = []
-    for turbine_model_new in ('mixed',) + new_turbine_models():
+    for turbine_model_new in new_turbine_models() + ('mixed',):
         repower_potentials.append(load_repower_potential(turbine_model_new, distance_factor=None))
 
     _, stacklabels = plot_repower_potential(*repower_potentials, variable='power_generation')
@@ -99,7 +99,7 @@ def savefig_optimized_cluster(turbines):
     prevail_wind_direction = load_prevail_wind_direction()
     distance_factors = load_distance_factors()
 
-    for step in range(4):
+    for step in range(5):
         fig = plot_optimized_cluster(turbines, cluster_per_location, is_optimal_location,
                                      turbine_model, distance_factors, prevail_wind_direction,
                                      step=step)
