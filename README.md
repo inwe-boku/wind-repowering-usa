@@ -6,7 +6,7 @@ The potential for repowering US wind turbines
 This repository contains code to produce the figures for an analysis first
 presented at the [EGU 2019](https://www.egu2019.eu/) in the session
 [Spatiotemporal modelling of distributed renewable energy systems](https://meetingorganizer.copernicus.org/EGU2019/orals/30279)
-([abstract](https://meetingorganizer.copernicus.org/EGU2019/EGU2019-7252.pdf)). See GIT tag [egu2019](https://github.com/inwe-boku/wind-repowering-usa/tree/egu2019) for the version of this repository used for the presentation at the EGU 2019 (including the slides).
+([abstract](https://meetingorganizer.copernicus.org/EGU2019/EGU2019-7252.pdf)). See GIT tag [egu2019](https://github.com/inwe-boku/wind-repowering-usa/tree/egu2019) for the version of this repository used for the presentation at the EGU 2019 (including the slides). An enhanced version is presented at the [INFORMS Annual Meeting 2019](https://www.abstractsonline.com/pp8/#!/6818/presentation/8219).
 
 * [slides](doc/slides/slides.pdf)
 * [abstract](doc/abstract/abstract.pdf)
@@ -49,7 +49,7 @@ conda activate wind_repower_usa
 Install the Python Gurobi API in the conda environment:
 
 ```
-cd /opt/gurobi810/linux64/ 
+cd /opt/gurobi810/linux64/
 python setup.py install
 ```
 
@@ -83,3 +83,4 @@ Changelog
 ---------
 
 * [egu2019](https://github.com/inwe-boku/wind-repowering-usa/tree/egu2019): version presented at the [EGU 2019](http://egu2019.eu/)
+* [informs2019](https://github.com/inwe-boku/wind-repowering-usa/tree/informs2019): version presented at the [INFORMS Annual Meeting 2019](https://www.abstractsonline.com/pp8/#!/6818/presentation/8219)
