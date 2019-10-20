@@ -81,7 +81,7 @@
     \inst{1}Institute for Sustainable Economic Development,\\
     University of Natural Resources and Life Sciences, Vienna
 }
-\date{2019-10-20, Vienna, INFORMS 2019}
+\date{2019-10-20, Seattle, WA\\INFORMS Annual Meeting 2019}
 
 \begin{document}
     %%%%Title Page
@@ -127,8 +127,8 @@
                 the U.S. Energy Information Administration (EIA) via the
                 Electricity data browser: time series, monthly total power
                 generation (2001 - 2018)\pause
-            \item Data sheets for turbine models:
-                \textbf{rotor diameter}, \textbf{power curve}
+            \item Data sheets and NREL SAM:
+                \textbf{rotor diameter}, \textbf{power curve} for some selected turbine models
         \end{itemize}
     \end{frame}
 
@@ -165,9 +165,9 @@
         \includegraphics[width=\textwidth]{../../figures/simulated-energy_time-series.pdf}
     \end{frame}
 
-    %\begin{frame}{Historical development of wind turbine characteristics}
-        %\includegraphics[width=\textwidth]{../../figures/history_turbines.pdf}
-    %\end{frame}
+    \begin{frame}{Historical development of wind turbine characteristics}
+        \includegraphics[width=\textwidth]{../../figures/history_turbines.pdf}
+    \end{frame}
 
     \begin{frame}{Maximum power generation with different turbines}
         \textbf{Optimization problem}:\\
@@ -209,12 +209,20 @@
         \includegraphics[width=\textwidth]{../../figures/optimized_cluster-3.pdf}
     \end{frame}
 
+    \begin{frame}{Optimal locations for new wind turbines}
+        \includegraphics[width=\textwidth]{../../figures/optimized_cluster-4.pdf}
+    \end{frame}
+
     \begin{frame}{Minimum distances between turbine locations}
         \includegraphics[width=\textwidth]{../../figures/distances_between_turbines.png}
     \end{frame}
 
     \begin{frame}{Repowering potential: power generation}
         \includegraphics[width=\textwidth]{../../figures/repower_potential-direction-dependent_power_generation.pdf}
+    \end{frame}
+
+    \begin{frame}{Repowering potential: best turbine models}
+        \includegraphics[width=\textwidth]{../../figures/repower_potential-direction-dependent_power_generation-stacked.pdf}
     \end{frame}
 
     \begin{frame}{Repowering potential: number of turbines}
@@ -230,6 +238,17 @@
                 turbines installed\pause
             \item minimum distances between wind turbines can be estimated by a
                 linear model using the rotor diameter\pause
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Open Code \& Data}
+        \begin{itemize}
+            \item \textbf{Tools:} xarray (Apache-2.0), cvxpy (Apache-2.0), numpy (BSD-3-Clause),
+                Python (GPL compatible), ...\pause\\
+                and Gurobi (commercial, closed-source)\pause
+            \item \textbf{Data:} ERA5 wind data, USWTDB, EIA wind power net genration,
+                data sheets, NREL SAM (BSD-3-Clause)\pause
+            \item \textbf{Code:} MIT-licensed (partially CC-BY), see http://bit.ly/wind-repower-us
         \end{itemize}
     \end{frame}
 
