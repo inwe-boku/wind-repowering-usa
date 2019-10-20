@@ -1,4 +1,4 @@
-![MIT License](![MIT License](https://choosealicense.com/licenses/mit/))
+[![MIT License](https://img.shields.io/github/license/inwe-boku/wind-repowering-usa.svg)](https://choosealicense.com/licenses/mit/)
 
 The potential for repowering US wind turbines
 =============================================
