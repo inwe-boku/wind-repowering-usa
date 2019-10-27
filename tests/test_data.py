@@ -35,8 +35,8 @@ def test_optimal_locations():
 def test_repowering_potential():
     repower_potential = load_repower_potential(turbine_model_new=e138ep3, distance_factor=4)
     np.testing.assert_allclose(repower_potential.power_generation.sel(num_new_turbines=234),
-                               266776.907325)
-    assert repower_potential.num_turbines.sel(num_new_turbines=2034) == 58223
+                               266776.807682)
+    assert repower_potential.num_turbines.sel(num_new_turbines=2034) == 58216
 
 
 def test_repowering_increases_output():
@@ -56,7 +56,7 @@ def test_repowering_increases_output():
 def test_load_repower_potential():
     repower_potential = load_repower_potential(e138ep3, 4)
     some_value = repower_potential.sel(num_new_turbines=242)
-    np.testing.assert_allclose(some_value.power_generation, 266855.979398)
+    np.testing.assert_allclose(some_value.power_generation, 266855.828523)
     assert some_value.num_turbines == 58403
 
 # TODO test all data for NaNs if they shouldn't contain Nans!
