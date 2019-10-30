@@ -109,7 +109,8 @@ def plot_power_curve_linearization(power_curve, linear_pc,
     return plt.gca()
 
 
-def plot_repower_potential(*repower_potentials, variable='power_generation', stacklabels=None):
+def plot_repower_potential(*repower_potentials, variable='power_generation', stacklabels=None,
+                           relative_ylabel=False, linestyle=None, legend=True):
     """This function plots either expected power generation or total number of installed
     turbines."""
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
@@ -125,6 +126,13 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
         'power_gain_per_model': 1e-3,
         'num_turbines': 1.,
     }
+    if relative_ylabel:
+        ylabel = {
+            'power_generation': 'Wind power generation [%]',
+        }
+        factor = {
+            'power_generation': 100./repower_potentials[0][variable][0]
+        }
 
     plt.ylabel(ylabel[variable])  # FIXME make sure that this is GW!
     plt.grid(True)
@@ -147,7 +155,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
         turbine_model_name = repower_potential.attrs['turbine_model_new']
         distance_factor = repower_potential.attrs['distance_factor']
         distance_factors.append(distance_factor)
-        linestyle = distance_factor_style[distance_factor]
+        linestyle = linestyle or distance_factor_style[distance_factor]
 
         if turbine_model_name != 'mixed':
             turbine_model = getattr(turbine_models, turbine_model_name)
@@ -156,7 +164,7 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
                 pass  # ok, this a bit dirty...
             turbine_model = Turbine()
             turbine_model.name = 'Best turbine model per cluster'
-            linestyle = '--'
+            linestyle = linestyle or '--'
         color = turbine_color[turbine_model_name]
 
         label = turbine_model.name if distance_factor in (2, 0) else '_nolegend_'
@@ -170,13 +178,17 @@ def plot_repower_potential(*repower_potentials, variable='power_generation', sta
             ax.plot(num_new_turbines, factor[variable] * repower_potential[variable],
                     linestyle=linestyle, label=label, color=color)
 
-    loc = 'upper left' if variable != 'num_turbines' else None
-    legend1 = ax.legend(loc=loc)
+    xlabels = ['{:,.0f}K'.format(x) for x in ax.get_xticks()/1000]
+    ax.set_xticklabels(xlabels)
+
+    if legend:
+        loc = 'upper left' if variable != 'num_turbines' else None
+        legend1 = ax.legend(loc=loc)
 
     dist_factors = [Line2D([], [], color='black', linestyle=distance_factor_style[df],
                            label=f"Distance factor {df}") for df in distance_factors if df != 0]
 
-    if dist_factors:
+    if legend and dist_factors:
         ax.legend(handles=dist_factors, loc='upper right')
         ax.add_artist(legend1)
 

@@ -81,6 +81,11 @@ def savefig_repower_potential_direction():
     plt.savefig(FIGURES_DIR / 'repower_potential-direction-dependent_num_turbines.pdf',
                 bbox_inches='tight')
 
+    plot_repower_potential(load_repower_potential('mixed', distance_factor=None),
+                           variable='power_generation', relative_ylabel=True, linestyle='-',
+                           legend=False)
+    plt.savefig(FIGURES_DIR / 'repower_potential_power_generation-relative.pdf', bbox_inches='tight')
+
 
 def savefig_mean_wind_speed_and_turbines(turbines):
     np.random.seed(42)
